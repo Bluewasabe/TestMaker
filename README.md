@@ -1,12 +1,30 @@
 # Testmaker
 
-A self-contained, browser-based practice test engine. Works with any subject — you bring your own question data as a JSON file; the engine handles testing, scoring, progress tracking, and history.
-
-No server. No install. No internet required after download. Open `engine/quiz-engine.html` directly in your browser.
+A browser-based practice test engine. Works with any subject — bring your own question data as a PDF, text file, or JSON file; the engine handles testing, scoring, progress tracking, and history.
 
 ---
 
-## Getting Started
+## Quick Start — Docker (recommended for most users)
+
+The Docker version is the easiest way to get started. It bundles everything — no Perl, no extra installs. Drop a PDF and your test is ready.
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS / Linux)
+
+```bash
+git clone https://github.com/Bluewasabe/TestMaker.git
+cd TestMaker
+docker compose -f docker/docker-compose.yml up
+```
+
+Then open **http://localhost:8080** in your browser and drop a PDF onto the page.
+
+> To stop the service: `Ctrl+C` in the terminal, or `docker compose -f docker/docker-compose.yml down`
+
+---
+
+## Getting Started — No Docker (JSON files only)
+
+If you already have a `questions.json` file or prefer not to use Docker, `engine/quiz-engine.html` works as a standalone local file with no dependencies.
 
 ### 1. Open the app
 
@@ -29,9 +47,11 @@ No web server is needed — the file runs from your local disk.
 
 On the welcome screen, either:
 - **Drag and drop** a `.json` question file onto the page, or
-- Click **Load Question Set** and pick a file.
+- Click **Browse Files** and pick a file.
 
 The app ships with a working demo file at `examples/sample-questions.json` — use it to try things out immediately.
+
+> **Note:** PDF and `.txt` files can only be dropped when using the Docker service (they require server-side processing). When opening the HTML file directly, drop a `.json` file.
 
 ### 3. Start a test
 

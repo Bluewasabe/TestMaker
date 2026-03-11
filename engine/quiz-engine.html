@@ -159,11 +159,11 @@ body{overflow-x:hidden}
   </div>
   <div id="cached-banner" style="display:none;margin-bottom:16px"></div>
   <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-    <div class="drop-icon">📂</div>
-    <div class="drop-title">Drop your questions.json here</div>
-    <div class="drop-sub">or click to browse</div>
+    <div class="drop-icon" id="drop-icon">📂</div>
+    <div class="drop-title" id="drop-title">Drop a PDF or questions.json here</div>
+    <div class="drop-sub" id="drop-sub">or click to browse</div>
     <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse Files</button>
-    <input type="file" id="file-input" accept=".json" style="display:none">
+    <input type="file" id="file-input" accept=".json,.pdf,.txt" style="display:none">
   </div>
   <div class="load-error" id="load-error"></div>
   <div class="schema-hint">
@@ -408,6 +408,16 @@ fileInput.addEventListener('change', e => {
 });
 
 function loadFile(file) {
+  const name = file.name || '';
+  const isPdf = file.type === 'application/pdf' || name.toLowerCase().endsWith('.pdf');
+  const isTxt = file.type === 'text/plain'      || name.toLowerCase().endsWith('.txt');
+
+  if(isPdf || isTxt) {
+    parsePdf(file);
+    return;
+  }
+
+  // JSON path (existing behaviour)
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -418,6 +428,76 @@ function loadFile(file) {
     } catch(ex) { showLoadError('Invalid JSON: ' + ex.message); }
   };
   reader.readAsText(file);
+}
+
+function parsePdf(file) {
+  // PDF/TXT parsing requires the Docker service (server-side pdftotext + parser).
+  // When opened as a local file (file://) the service is not available.
+  const isLocal = window.location.protocol === 'file:';
+  if(isLocal) {
+    showLoadError(
+      'PDF parsing requires the Docker service. ' +
+      'Run "docker compose up" from the repo folder and open http://localhost:8080, ' +
+      'or convert your PDF to a questions.json first using the command-line parser (see README).'
+    );
+    return;
+  }
+
+  // Show spinner in the drop zone
+  const icon  = document.getElementById('drop-icon');
+  const title = document.getElementById('drop-title');
+  const sub   = document.getElementById('drop-sub');
+  const origIcon  = icon.textContent;
+  const origTitle = title.textContent;
+  const origSub   = sub.textContent;
+
+  icon.textContent  = '⏳';
+  title.textContent = 'Parsing ' + file.name + '…';
+  sub.textContent   = 'Extracting questions — this may take a few seconds.';
+  document.getElementById('load-error').classList.remove('show');
+
+  const restore = () => {
+    icon.textContent  = origIcon;
+    title.textContent = origTitle;
+    sub.textContent   = origSub;
+  };
+
+  fetch('/parse', {
+    method:  'POST',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      'X-Filename':   file.name,
+    },
+    body: file,
+  })
+  .then(res => {
+    const reviewCount = parseInt(res.headers.get('X-Review-Count') || '0', 10);
+    return res.json().then(data => ({ data, status: res.status, reviewCount }));
+  })
+  .then(({ data, status, reviewCount }) => {
+    restore();
+    if(status !== 200) {
+      showLoadError(data.error || 'Parser error (status ' + status + ').');
+      return;
+    }
+    const err = validateData(data);
+    if(err) { showLoadError('Parser output invalid: ' + err); return; }
+
+    if(reviewCount > 0) {
+      const banner = document.getElementById('load-error');
+      banner.style.color = 'var(--warn)';
+      banner.style.borderColor = 'var(--warn)';
+      banner.style.background = 'rgba(245,158,11,.08)';
+      banner.textContent = '⚠ ' + reviewCount + ' question(s) were flagged for review '
+        + '(parser wasn\'t confident). Check the JSON before relying on those answers.';
+      banner.classList.add('show');
+    }
+    initQuestionSet(data);
+  })
+  .catch(err => {
+    restore();
+    showLoadError('Could not reach the parse service: ' + err.message);
+  });
 }
 
 function validateData(data) {

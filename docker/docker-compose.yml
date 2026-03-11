@@ -1,0 +1,18 @@
+services:
+  testmaker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: testmaker
+    ports:
+      - "${PORT:-8080}:8080"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
