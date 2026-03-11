@@ -101,23 +101,45 @@ If you already have a document that contains multiple-choice or True/False quest
 
 > **Important:** The parser *extracts* questions that are already written in your document. It does not generate or invent new questions. Your document must contain the questions, answer options, and (ideally) an answer key.
 
-**Requirements:** Perl 5.10+ (pre-installed on macOS and most Linux systems; Windows users can use [Strawberry Perl](https://strawberryperl.com/))
+#### Step 1 — Install the requirements
 
-**PDF support:** requires `pdftotext` from [Poppler](https://poppler.freedesktop.org/) to be on your PATH.
+**Perl 5.10+** is required to run the parser:
+- macOS / Linux: already installed — check with `perl --version`
+- Windows: download [Strawberry Perl](https://strawberryperl.com/) and install it
+
+**For PDF input**, `pdftotext` (from the Poppler library) must be on your PATH:
+- **Windows:** `winget install GnuWin32.GnuWin32` or `choco install poppler`
+- **macOS:** `brew install poppler`
+- **Linux (Debian/Ubuntu):** `sudo apt install poppler-utils`
+- **Linux (Fedora/RHEL):** `sudo dnf install poppler-utils`
+
+Verify with: `pdftotext --version`
+
+#### Step 2 — Run the parser
 
 ```bash
-# Basic usage — outputs to stdout
-perl parsers/extract-questions.pl my-study-guide.txt
+# Parse a PDF and write to a JSON file
+perl parsers/extract-questions.pl my-study-guide.pdf -o my-questions.json
 
-# Write directly to a file
+# Add a name and author to the output metadata
+perl parsers/extract-questions.pl my-study-guide.pdf \
+  -n "Network+ Practice" -a "Jane Smith" -o my-questions.json
+
+# Works the same way with .txt and .html files
 perl parsers/extract-questions.pl my-study-guide.txt -o my-questions.json
-
-# Set a name and author
-perl parsers/extract-questions.pl my-study-guide.txt \
-  -n "Network+ Practice" -a "Jane Smith" -o network.json
 ```
 
-The parser detects numbered questions, lettered options, answer keys, explanations, and chapter/section headings automatically. Questions it isn't confident about are flagged on stderr and marked in the output for manual review.
+The parser detects numbered questions, lettered options, answer keys, explanations, and chapter/section headings automatically. Questions it isn't confident about are flagged on stderr — review those before loading.
+
+#### Step 3 — Load the output in the app
+
+Open `engine/quiz-engine.html` in your browser, then drag and drop `my-questions.json` onto the welcome screen (or click **Browse Files** and select it).
+
+#### Troubleshooting
+
+- **`[REVIEW]` warnings on stderr** — the parser wasn't confident about those questions. Open the JSON in a text editor, find the `"_review": true` entries, fix them manually, and remove the `_review` and `_note` fields before loading.
+- **Parser finds questions but no options** — your PDF likely uses a single-line layout where options are on the same line as the question (a common pdftotext artifact). This requires a custom parser; see `DEV.md` for guidance.
+- **0 questions extracted** — the document's question numbering format may not match. Run with a `.txt` version of your document if possible, or open an issue.
 
 ### Option D — AI-powered parser (future — Phase 6)
 
