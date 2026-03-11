@@ -40,6 +40,53 @@ A single HTML file with all CSS and JavaScript inlined. No build step, no bundle
 | `review` | End-of-test results — score, category breakdown, question list |
 | `history` | All past sessions |
 
+### App view flow
+
+```mermaid
+flowchart TD
+    START([Open quiz-engine.html]) --> CACHE{Cached set\nin localStorage?}
+    CACHE -->|Yes| BANNER[/"Continue → banner"/]
+    CACHE -->|No| LOAD
+
+    BANNER -->|Dismiss| LOAD
+    BANNER -->|Accept| HOME
+
+    LOAD[Load View\nDrag-drop or pick .json file] --> VALIDATE{Schema\nvalid?}
+    VALIDATE -->|No| ERROR[/"Error message"/]
+    ERROR --> LOAD
+    VALIDATE -->|Yes| HOME
+
+    HOME[Home View\nAccuracy bars · Category stats\nRecent sessions] --> CONFIG
+    HOME --> HISTORY
+
+    CONFIG[Config View\nCategories · Count · Mode\nShuffle · Timer · Weak-only] --> TEST
+
+    TEST[Test View\nQuestion · Options · Progress bar\nFlag · Keyboard shortcuts] --> REVIEW
+
+    REVIEW[Review View\nScore · Pass/Fail\nCategory breakdown · Question list] --> HOME
+    REVIEW -->|Retry| CONFIG
+
+    HISTORY[History View\nAll past sessions · Clear button] --> HOME
+
+    HOME -->|Load different set| LOAD
+```
+
+### Data flow
+
+```mermaid
+flowchart LR
+    DOC["Source document\n.txt / .html / .pdf"]
+    PARSER["extract-questions.pl\nPerl heuristic parser"]
+    JSON["questions.json\nvalidated against schema"]
+    ENGINE["quiz-engine.html\nFile API load"]
+    LS[("localStorage\ntm_data · tm_config\ntm_last_data")]
+
+    DOC -->|"perl extract-questions.pl"| PARSER
+    PARSER --> JSON
+    JSON -->|drag-drop or file picker| ENGINE
+    ENGINE <-->|read/write| LS
+```
+
 **State:**
 - Active question set lives in memory as `window.qs` (the parsed JSON object).
 - All persistent data is stored in `localStorage` (see [localStorage schema](#localstorage-schema) below).
