@@ -10,7 +10,18 @@ No server. No install. No internet required after download. Open `engine/quiz-en
 
 ### 1. Open the app
 
-Download or clone this repository, then open `engine/quiz-engine.html` in any modern browser (Chrome, Firefox, or Edge).
+Download or clone this repository:
+
+```bash
+git clone https://github.com/Bluewasabe/TestMaker.git
+cd TestMaker
+```
+
+Then open `engine/quiz-engine.html` directly in your browser:
+
+- **Windows:** double-click `engine\quiz-engine.html` in File Explorer, or drag it onto an open browser window
+- **macOS:** double-click `engine/quiz-engine.html` in Finder, or right-click → Open With → your browser
+- **Linux:** right-click the file → Open With → browser, or run `xdg-open engine/quiz-engine.html` in a terminal
 
 No web server is needed — the file runs from your local disk.
 
