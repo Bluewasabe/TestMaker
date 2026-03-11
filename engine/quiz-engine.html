@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Testmaker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--card:#1a1d2e;--card2:#21253a;--border:#2d3154;
+  --primary:#6366f1;--primary-h:#818cf8;
+  --correct:#22c55e;--wrong:#ef4444;--warn:#f59e0b;
+  --text:#e2e8f0;--muted:#94a3b8;--muted2:#64748b;
+  --radius:10px;--shadow:0 4px 24px rgba(0,0,0,.4);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.6}
+body{overflow-x:hidden}
+
+.view{display:none;min-height:100vh;padding:24px 16px;max-width:900px;margin:0 auto}
+.view.active{display:block}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-h)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:var(--wrong);color:#fff}.btn-danger:hover{filter:brightness(1.1)}
+.btn-success{background:var(--correct);color:#fff}.btn-success:hover{filter:brightness(1.1)}
+.btn-warn{background:var(--warn);color:#000}.btn-warn:hover{filter:brightness(1.1)}
+.btn-lg{padding:14px 32px;font-size:16px;border-radius:10px}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+
+.form-group{margin-bottom:20px}
+.lbl{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.checkbox-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;user-select:none}
+.checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer}
+.radio-group{display:flex;gap:12px;flex-wrap:wrap}
+.radio-btn{padding:8px 18px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s;user-select:none}
+.radio-btn.active{border-color:var(--primary);background:rgba(99,102,241,.15);color:var(--primary)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:.2s}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--primary)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+
+.progress-wrap{background:var(--border);border-radius:4px;height:6px;margin-bottom:20px;overflow:hidden}
+.progress-bar{height:100%;border-radius:4px;background:var(--primary);transition:width .3s}
+
+.question-meta{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.cat-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;letter-spacing:.03em}
+.q-num{font-size:13px;color:var(--muted);font-weight:600}
+.timer-display{margin-left:auto;font-size:14px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums}
+.question-text{font-size:17px;font-weight:500;margin-bottom:22px;line-height:1.65}
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.option{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--card2)}
+.option:hover:not(.locked){border-color:var(--primary);background:rgba(99,102,241,.08)}
+.option.selected{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.option.correct{border-color:var(--correct);background:rgba(34,197,94,.1)}
+.option.wrong{border-color:var(--wrong);background:rgba(239,68,68,.1)}
+.option.locked{cursor:default}
+.opt-letter{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;background:var(--border);color:var(--text);transition:all .15s}
+.option.selected .opt-letter{background:var(--primary);color:#fff}
+.option.correct .opt-letter{background:var(--correct);color:#fff}
+.option.wrong .opt-letter{background:var(--wrong);color:#fff}
+.opt-text{font-size:15px;flex:1;padding-top:3px}
+.explanation{background:rgba(99,102,241,.08);border-left:4px solid var(--primary);border-radius:0 8px 8px 0;padding:14px 16px;margin-top:4px;font-size:14px;color:var(--text);line-height:1.7;display:none}
+.explanation.show{display:block}
+
+.flag-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted2);transition:color .15s;padding:4px}
+.flag-btn.flagged{color:var(--warn)}
+
+.score-big{text-align:center;padding:32px 0}
+.score-circle{width:150px;height:150px;border-radius:50%;border:6px solid var(--primary);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:16px}
+.score-num{font-size:36px;font-weight:800;line-height:1}
+.score-pct{font-size:14px;color:var(--muted);margin-top:4px}
+.pass-badge{display:inline-block;padding:8px 24px;border-radius:20px;font-size:16px;font-weight:700;margin-bottom:8px}
+.pass{background:rgba(34,197,94,.15);color:var(--correct);border:2px solid var(--correct)}
+.fail{background:rgba(239,68,68,.15);color:var(--wrong);border:2px solid var(--wrong)}
+
+.cat-table{width:100%;border-collapse:collapse;font-size:14px}
+.cat-table th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.cat-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.cat-table tr:last-child td{border-bottom:none}
+.mini-bar-wrap{background:var(--border);border-radius:3px;height:8px;width:120px;overflow:hidden}
+.mini-bar{height:100%;border-radius:3px}
+
+.review-item{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.review-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:var(--card2);user-select:none}
+.review-header:hover{background:var(--border)}
+.review-body{padding:16px;display:none;border-top:1px solid var(--border)}
+.review-body.open{display:block}
+.review-q{font-size:15px;margin-bottom:14px;line-height:1.6}
+.review-options{display:flex;flex-direction:column;gap:6px;font-size:14px;margin-bottom:12px}
+.review-opt{padding:8px 14px;border-radius:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.review-opt.rv-correct{background:rgba(34,197,94,.12);border:1px solid var(--correct);color:var(--correct)}
+.review-opt.rv-wrong{background:rgba(239,68,68,.12);border:1px solid var(--wrong);color:var(--wrong)}
+.review-opt.rv-neutral{background:var(--card2);border:1px solid var(--border);color:var(--muted)}
+.review-exp{font-size:13px;color:var(--muted);line-height:1.65;border-top:1px solid var(--border);padding-top:10px;margin-top:6px}
+.flagged-marker{color:var(--warn);font-size:13px;font-weight:600}
+
+.session-item{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.session-item:last-child{border-bottom:none}
+.session-score{font-size:22px;font-weight:800;min-width:60px}
+.session-score.s-pass{color:var(--correct)}
+.session-score.s-fail{color:var(--wrong)}
+.session-meta{flex:1;min-width:200px;font-size:13px;color:var(--muted);line-height:1.8}
+.session-bar-wrap{width:100px;background:var(--border);border-radius:3px;height:6px;overflow:hidden}
+.session-bar{height:100%;border-radius:3px}
+
+.acc-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.acc-label{font-size:12px;color:var(--muted);width:200px;flex-shrink:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-bar-wrap{flex:1;background:var(--border);border-radius:4px;height:10px;overflow:hidden}
+.acc-bar{height:100%;border-radius:4px;transition:width .4s}
+.acc-pct{font-size:13px;font-weight:700;min-width:40px;text-align:right}
+
+.tip-box{background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:18px;margin-bottom:20px}
+.tip-title{font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.tip-text{font-size:14px;color:var(--muted);line-height:1.7}
+
+.section-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.section-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+.empty{text-align:center;color:var(--muted);padding:40px 0;font-size:15px}
+.kbd{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:12px;font-family:monospace;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+.stat-num{font-size:28px;font-weight:800;color:var(--primary);margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.q-stats{font-size:11px;color:var(--muted2);margin-top:2px}
+.shortcut-hint{font-size:12px;color:var(--muted2);margin-top:10px}
+.active-filter{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important}
+
+/* Load view */
+.drop-zone{border:2px dashed var(--border);border-radius:16px;padding:60px 40px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card)}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--primary);background:rgba(99,102,241,.06)}
+.drop-icon{font-size:48px;margin-bottom:16px}
+.drop-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.drop-sub{font-size:14px;color:var(--muted);margin-bottom:24px}
+.load-error{background:rgba(239,68,68,.1);border:1px solid var(--wrong);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--wrong);margin-top:16px;display:none}
+.load-error.show{display:block}
+.schema-hint{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:20px;font-size:13px;color:var(--muted)}
+.schema-hint pre{background:var(--bg);border-radius:6px;padding:12px;margin-top:8px;overflow-x:auto;font-size:12px;color:var(--text);line-height:1.5}
+
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.btn-lg{width:100%}.radio-group{gap:8px}}
+</style>
+</head>
+<body>
+
+<!-- ===== LOAD ===== -->
+<div id="view-load" class="view active">
+  <div style="text-align:center;padding:40px 0 24px">
+    <div style="font-size:48px;margin-bottom:12px">📝</div>
+    <h1 style="font-size:32px;font-weight:800;margin-bottom:8px">Testmaker</h1>
+    <p style="color:var(--muted);font-size:15px">A self-contained practice test engine. Bring your own questions.</p>
+  </div>
+  <div id="cached-banner" style="display:none;margin-bottom:16px"></div>
+  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="drop-icon">📂</div>
+    <div class="drop-title">Drop your questions.json here</div>
+    <div class="drop-sub">or click to browse</div>
+    <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse Files</button>
+    <input type="file" id="file-input" accept=".json" style="display:none">
+  </div>
+  <div class="load-error" id="load-error"></div>
+  <div class="schema-hint">
+    <div style="font-weight:700;margin-bottom:6px">&#128196; Expected file format</div>
+    <pre>{
+  "meta": {
+    "name": "My Study Set",
+    "description": "Optional description",
+    "categories": [
+      { "id": 1, "name": "Topic A", "weight": 50 },
+      { "id": 2, "name": "Topic B", "weight": 50 }
+    ],
+    "examInfo": { "questionCount": 30, "timeMinutes": 45, "passingPercent": 75 }
+  },
+  "questions": [
+    {
+      "id": "q1", "category": 1,
+      "question": "What is ...?",
+      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+      "correct": "B",
+      "explanation": "Because ..."
+    }
+  ]
+}</pre>
+    <div style="margin-top:12px;font-size:12px">&#x2139;&#xfe0f; <code>examInfo</code> and <code>explanation</code> are optional. Categories can use any number of options (A/B, A/B/C/D, etc.)</div>
+  </div>
+</div>
+
+<!-- ===== HOME ===== -->
+<div id="view-home" class="view">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:26px;font-weight:800" id="home-title">Testmaker</h1>
+      <p style="color:var(--muted);font-size:14px" id="home-subtitle"></p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="showView('history')">&#128202; History</button>
+      <button class="btn btn-secondary btn-sm" onclick="changeSet()">&#128194; Change Set</button>
+    </div>
+  </div>
+  <div id="home-tip" class="tip-box"></div>
+  <div class="grid2" style="margin-bottom:16px">
+    <div class="stat-card"><div class="stat-num" id="dash-accuracy">&#8212;</div><div class="stat-lbl">Overall Accuracy</div></div>
+    <div class="stat-card"><div class="stat-num" id="dash-sessions">0</div><div class="stat-lbl">Tests Completed</div></div>
+  </div>
+  <div class="card"><div class="lbl" style="margin-bottom:14px">Category Accuracy</div><div id="cat-acc-bars"></div></div>
+  <div class="card"><div class="lbl" style="margin-bottom:14px">Recent Sessions</div><div id="recent-sessions"></div></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+    <button class="btn btn-primary btn-lg" onclick="showView('config')" style="flex:1">&#128196; New Practice Test</button>
+    <button class="btn btn-warn btn-lg" onclick="startExamMode()" id="exam-btn" style="flex:1;display:none">&#9889; Exam Simulation</button>
+  </div>
+</div>
+
+<!-- ===== CONFIG ===== -->
+<div id="view-config" class="view">
+  <button class="btn btn-secondary btn-sm" onclick="showView('home')" style="margin-bottom:20px">&#8592; Back</button>
+  <div class="section-title">Configure Your Test</div>
+  <div class="section-sub">Choose categories, count, and mode</div>
+  <div class="card">
+    <div class="form-group">
+      <div class="lbl">Categories</div>
+      <div id="cat-checkboxes"></div>
+      <div style="margin-top:8px">
+        <button class="btn btn-secondary btn-sm" onclick="selectAllCats(true)">All</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectAllCats(false)" style="margin-left:6px">None</button>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="form-group">
+      <div class="lbl">Question Count</div>
+      <div class="radio-group" id="count-radio"></div>
+    </div>
+    <hr class="divider">
+    <div class="form-group">
+      <div class="lbl">Feedback Mode</div>
+      <div class="radio-group" id="mode-radio"></div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="toggle-row">
+        <div><div style="font-weight:600;font-size:14px">Shuffle Questions</div><div style="font-size:12px;color:var(--muted)">Randomize question order</div></div>
+        <label class="toggle"><input type="checkbox" id="tog-shuffle"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><div style="font-weight:600;font-size:14px">Shuffle Answer Options</div><div style="font-size:12px;color:var(--muted)">Prevents position memorization</div></div>
+        <label class="toggle"><input type="checkbox" id="tog-shuffle-opts"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><div style="font-weight:600;font-size:14px">Focus Weak Questions</div><div style="font-size:12px;color:var(--muted)">Only show questions where accuracy &lt; 70%</div></div>
+        <label class="toggle"><input type="checkbox" id="tog-weak"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><div style="font-weight:600;font-size:14px">Show Timer</div><div style="font-size:12px;color:var(--muted)">Display elapsed time during test</div></div>
+        <label class="toggle"><input type="checkbox" id="tog-timer"><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+  <div id="available-count" style="text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px"></div>
+  <button class="btn btn-primary btn-lg" style="width:100%" onclick="startTest(false)">Start Test &#9658;</button>
+  <div class="shortcut-hint" style="text-align:center;margin-top:12px">
+    Keyboard: <span class="kbd">1&ndash;4</span> or <span class="kbd">A&ndash;D</span> select &nbsp;|&nbsp;
+    <span class="kbd">Enter</span> next &nbsp;|&nbsp;
+    <span class="kbd">F</span> flag &nbsp;|&nbsp;
+    <span class="kbd">&larr;&rarr;</span> navigate
+  </div>
+</div>
+
+<!-- ===== TEST ===== -->
+<div id="view-test" class="view">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="q-num" id="test-progress-label">Q 1 of 20</div>
+    <div id="test-timer" class="timer-display" style="display:none"></div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="flag-btn" id="flag-btn" onclick="toggleFlag()" title="Flag for review (F)">&#9872;</button>
+      <button class="btn btn-secondary btn-sm" onclick="confirmQuit()">Quit</button>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="test-progress-bar"></div></div>
+  <div class="card">
+    <div class="question-meta">
+      <div class="cat-badge" id="q-cat-badge"></div>
+      <div class="q-stats" id="q-stats"></div>
+    </div>
+    <div class="question-text" id="q-text"></div>
+    <div class="options" id="q-options"></div>
+    <div class="explanation" id="q-explanation"></div>
+  </div>
+  <div class="btn-row" id="test-btn-row" style="justify-content:flex-end"></div>
+</div>
+
+<!-- ===== REVIEW ===== -->
+<div id="view-review" class="view">
+  <div class="score-big">
+    <div><div class="score-circle" id="review-circle">
+      <div class="score-num" id="review-score-num"></div>
+      <div class="score-pct" id="review-score-pct"></div>
+    </div></div>
+    <div id="review-pass-badge"></div>
+    <div style="color:var(--muted);font-size:14px;margin-top:8px" id="review-meta"></div>
+  </div>
+  <div class="card">
+    <div class="lbl" style="margin-bottom:12px">Category Breakdown</div>
+    <table class="cat-table" id="review-cat-table"></table>
+  </div>
+  <div class="btn-row" style="margin-bottom:20px">
+    <button class="btn btn-primary" onclick="retakeTest()">&#8635; Retake Same Questions</button>
+    <button class="btn btn-secondary" onclick="showView('config')">&#43; New Test</button>
+    <button class="btn btn-secondary" onclick="showView('home')">&#127968; Home</button>
+  </div>
+  <div class="lbl" style="margin-bottom:12px">Question Review</div>
+  <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap" id="review-filter-row">
+    <button class="btn btn-secondary btn-sm active-filter" onclick="setReviewFilter('all',this)">All</button>
+    <button class="btn btn-secondary btn-sm" onclick="setReviewFilter('wrong',this)">Wrong</button>
+    <button class="btn btn-secondary btn-sm" onclick="setReviewFilter('correct',this)">Correct</button>
+    <button class="btn btn-secondary btn-sm" onclick="setReviewFilter('flagged',this)">Flagged</button>
+  </div>
+  <div id="review-list"></div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn btn-secondary" onclick="showView('home')">&#127968; Home</button>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div id="view-history" class="view">
+  <button class="btn btn-secondary btn-sm" onclick="showView('home')" style="margin-bottom:20px">&#8592; Back</button>
+  <div class="section-title">Test History</div>
+  <div class="section-sub" id="history-sub">All completed sessions</div>
+  <div class="card"><div id="history-list"></div></div>
+  <button class="btn btn-danger btn-sm" onclick="clearHistory()" style="margin-top:16px">Clear All History</button>
+</div>
+
+<script>
+/* ================================================================
+   CONSTANTS
+================================================================ */
+const CAT_COLORS = [
+  '#6366f1','#8b5cf6','#0ea5e9','#14b8a6',
+  '#f59e0b','#ec4899','#22c55e','#f97316',
+  '#06b6d4','#a855f7','#84cc16','#ef4444'
+];
+
+const TIPS = [
+  'Use Immediate Feedback mode while learning, then switch to Summary mode to simulate real test conditions.',
+  'Focus on your weakest categories first — use the "Focus Weak Questions" toggle to drill problem areas.',
+  'Aim for 85%+ accuracy per category before attempting a timed simulation.',
+  'Shuffle both questions and answer options to prevent position memorization.',
+  'Flag questions you find tricky — review flagged items after finishing a test.',
+  'Short, frequent sessions are more effective than marathon study blocks.',
+  'After a wrong answer, read the explanation carefully. Understanding why beats just knowing the answer.',
+  'Use the category breakdown after each test to identify where to focus next.',
+  'Consistency beats intensity — regular practice builds deeper retention.',
+  'When you consistently score 90%+ in a category, you have truly mastered it.',
+];
+
+/* ================================================================
+   STATE
+================================================================ */
+let questionData = null;   // full parsed JSON { meta, questions }
+let allQuestions  = [];    // questionData.questions
+let categories    = [];    // [{ id, name, weight, color }, ...]
+let catMap        = {};    // id -> category object
+let cachedData    = null;  // holds last-used set parsed from localStorage
+
+let config = {
+  categories: [], count: 20, mode: 'immediate',
+  shuffle: true, shuffleOptions: true, weakOnly: false, timer: false, examMode: false
+};
+let testState = null;
+
+/* ================================================================
+   STORAGE
+================================================================ */
+function statsKey() { return 'tm_data_' + encodeURIComponent(questionData.meta.name); }
+
+function loadStats() {
+  try { return JSON.parse(localStorage.getItem(statsKey())) || { sessions:[], questions:{} }; }
+  catch(e) { return { sessions:[], questions:{} }; }
+}
+function saveStats(s) { localStorage.setItem(statsKey(), JSON.stringify(s)); }
+
+function loadConfig() {
+  try { const c = JSON.parse(localStorage.getItem('tm_config')); if(c) Object.assign(config, c); }
+  catch(e) {}
+}
+function saveConfig() { localStorage.setItem('tm_config', JSON.stringify(config)); }
+
+/* ================================================================
+   FILE LOADING
+================================================================ */
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if(e.target.files[0]) loadFile(e.target.files[0]);
+  fileInput.value = '';
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const err  = validateData(data);
+      if(err) { showLoadError(err); return; }
+      initQuestionSet(data);
+    } catch(ex) { showLoadError('Invalid JSON: ' + ex.message); }
+  };
+  reader.readAsText(file);
+}
+
+function validateData(data) {
+  if(!data || typeof data !== 'object')              return 'File must be a JSON object.';
+  if(!data.meta)                                     return 'Missing "meta" field.';
+  if(!data.meta.name)                                return 'Missing "meta.name".';
+  if(!Array.isArray(data.meta.categories) || !data.meta.categories.length)
+                                                     return 'Missing or empty "meta.categories" array.';
+  if(!Array.isArray(data.questions) || !data.questions.length)
+                                                     return 'Missing or empty "questions" array.';
+  for(let i = 0; i < Math.min(data.questions.length, 5); i++) {
+    const q = data.questions[i];
+    if(!q.id)                                        return `Question ${i}: missing "id".`;
+    if(q.category === undefined || q.category === null) return `Question ${i}: missing "category".`;
+    if(!q.question)                                  return `Question ${i}: missing "question" text.`;
+    if(!q.options || typeof q.options !== 'object')  return `Question ${i}: missing "options".`;
+    if(!q.correct)                                   return `Question ${i}: missing "correct".`;
+  }
+  return null;
+}
+
+function showLoadError(msg) {
+  const el = document.getElementById('load-error');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+
+function initQuestionSet(data) {
+  questionData = data;
+  allQuestions = data.questions;
+  categories   = data.meta.categories.map((cat, i) => Object.assign({}, cat, { color: CAT_COLORS[i % CAT_COLORS.length] }));
+  catMap       = {};
+  categories.forEach(cat => catMap[cat.id] = cat);
+
+  // Reset config categories to all available
+  config.categories = categories.map(c => c.id);
+  loadConfig();
+  if(!config.categories || !config.categories.length) config.categories = categories.map(c => c.id);
+
+  // Cache to localStorage (best-effort; may fail on quota)
+  try { localStorage.setItem('tm_last_data', JSON.stringify(data)); } catch(e) {}
+
+  showView('home');
+}
+
+function tryRestoreCache() {
+  try {
+    const raw = localStorage.getItem('tm_last_data');
+    if(!raw) return;
+    cachedData = JSON.parse(raw);
+    if(!cachedData || !cachedData.meta || !cachedData.questions) { cachedData = null; return; }
+
+    const banner = document.getElementById('cached-banner');
+    banner.style.display = 'block';
+    banner.innerHTML =
+      '<div class="card" style="background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.4);' +
+      'display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+        '<div>' +
+          '<div style="font-weight:700">&#128218; ' + esc(cachedData.meta.name) + '</div>' +
+          '<div style="font-size:13px;color:var(--muted)">' + cachedData.questions.length + ' questions &mdash; last used set</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn btn-primary btn-sm" onclick="initQuestionSet(cachedData)">Continue &rarr;</button>' +
+          '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'cached-banner\').style.display=\'none\'">Dismiss</button>' +
+        '</div>' +
+      '</div>';
+  } catch(e) { cachedData = null; }
+}
+
+function changeSet() {
+  if(confirm('Change question set? Your progress for the current set is saved.')) showView('load');
+}
+
+/* ================================================================
+   NAVIGATION
+================================================================ */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if(name === 'home')    renderHome();
+  if(name === 'config')  renderConfig();
+  if(name === 'history') renderHistory();
+  window.scrollTo(0, 0);
+}
+
+/* ================================================================
+   HOME
+================================================================ */
+function renderHome() {
+  const meta = questionData.meta;
+  document.getElementById('home-title').textContent = meta.name;
+  document.getElementById('home-subtitle').textContent =
+    (meta.description ? meta.description + ' — ' : '') + allQuestions.length + ' questions';
+
+  document.getElementById('home-tip').innerHTML =
+    '<div class="tip-title">&#128161; Study Tip</div>' +
+    '<div class="tip-text">' + esc(TIPS[Math.floor(Math.random() * TIPS.length)]) + '</div>';
+
+  const hasExam = !!(meta.examInfo && meta.examInfo.questionCount && meta.examInfo.timeMinutes);
+  document.getElementById('exam-btn').style.display = hasExam ? '' : 'none';
+
+  const stats = loadStats();
+  let totalAtt = 0, totalCorr = 0;
+  Object.values(stats.questions).forEach(q => { totalAtt += q.attempts; totalCorr += q.correct; });
+  const acc = totalAtt > 0 ? Math.round(totalCorr / totalAtt * 100) : null;
+  document.getElementById('dash-accuracy').textContent = acc !== null ? acc + '%' : '—';
+  document.getElementById('dash-sessions').textContent = stats.sessions.length;
+
+  let barsHtml = '';
+  categories.forEach(cat => {
+    let att = 0, corr = 0;
+    allQuestions.filter(q => q.category === cat.id).forEach(q => {
+      const qs = stats.questions[q.id];
+      if(qs) { att += qs.attempts; corr += qs.correct; }
+    });
+    const pct = att > 0 ? Math.round(corr / att * 100) : null;
+    barsHtml +=
+      '<div class="acc-row">' +
+        '<div class="acc-label" style="color:' + cat.color + '" title="' + esc(cat.name) + '">' + esc(cat.name) + '</div>' +
+        '<div class="acc-bar-wrap"><div class="acc-bar" style="width:' + (pct || 0) + '%;background:' + cat.color + '"></div></div>' +
+        '<div class="acc-pct">' + (pct !== null ? pct + '%' : '—') + '</div>' +
+      '</div>';
+  });
+  document.getElementById('cat-acc-bars').innerHTML = barsHtml || '<div class="empty">No data yet.</div>';
+
+  const recent = stats.sessions.slice(-8).reverse();
+  if(!recent.length) {
+    document.getElementById('recent-sessions').innerHTML = '<div class="empty">No sessions yet. Take your first test!</div>';
+  } else {
+    const passPct = questionData.meta.examInfo && questionData.meta.examInfo.passingPercent || 70;
+    document.getElementById('recent-sessions').innerHTML = recent.map(s => {
+      const pct    = Math.round(s.score / s.total * 100);
+      const thresh = s.examMode ? passPct : 70;
+      const pass   = pct >= thresh;
+      const color  = pass ? 'var(--correct)' : 'var(--wrong)';
+      const cats   = (s.categories || []).map(id => catMap[id] ? catMap[id].name.split(' ')[0] : '?').join(', ') || 'All';
+      return '<div class="session-item">' +
+        '<div class="session-score ' + (pass ? 's-pass' : 's-fail') + '">' + pct + '%</div>' +
+        '<div class="session-meta">' +
+          '<div>' + s.score + ' / ' + s.total + ' correct</div>' +
+          '<div>' + fmtDate(s.date) + ' &bull; ' + esc(cats) + ' &bull; ' + (s.examMode ? 'Exam' : s.mode || 'immediate') + ' &bull; ' + (s.elapsed ? fmtTime(s.elapsed) : '—') + '</div>' +
+        '</div>' +
+        '<div><div class="session-bar-wrap"><div class="session-bar" style="width:' + pct + '%;background:' + color + '"></div></div></div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+/* ================================================================
+   CONFIG
+================================================================ */
+const COUNTS = [10, 20, 30, 50, 'All'];
+
+function renderConfig() {
+  loadConfig();
+  if(!config.categories || !config.categories.length) config.categories = categories.map(c => c.id);
+
+  let dHtml = '';
+  categories.forEach(cat => {
+    const cnt = allQuestions.filter(q => q.category === cat.id).length;
+    dHtml +=
+      '<label class="checkbox-row">' +
+        '<input type="checkbox" value="' + cat.id + '" ' + (config.categories.includes(cat.id) ? 'checked' : '') + ' onchange="updateCatConfig()">' +
+        '<span style="font-weight:600;color:' + cat.color + '">' + esc(cat.name) + '</span>' +
+        '<span style="color:var(--muted);font-size:13px">(' + cnt + ' q)</span>' +
+      '</label>';
+  });
+  document.getElementById('cat-checkboxes').innerHTML = dHtml;
+
+  document.getElementById('count-radio').innerHTML = COUNTS.map(c => {
+    const val = c === 'All' ? 'all' : c;
+    return '<div class="radio-btn ' + (config.count === val || config.count === c ? 'active' : '') +
+           '" onclick="setCount(this,\'' + val + '\')">' + c + '</div>';
+  }).join('');
+
+  document.getElementById('mode-radio').innerHTML =
+    '<div class="radio-btn ' + (config.mode === 'immediate' ? 'active' : '') + '" onclick="setMode(this,\'immediate\')">&#9889; Immediate</div>' +
+    '<div class="radio-btn ' + (config.mode === 'summary'   ? 'active' : '') + '" onclick="setMode(this,\'summary\')">&#128203; Summary</div>';
+
+  document.getElementById('tog-shuffle').checked      = config.shuffle;
+  document.getElementById('tog-shuffle-opts').checked = config.shuffleOptions;
+  document.getElementById('tog-weak').checked         = config.weakOnly;
+  document.getElementById('tog-timer').checked        = config.timer;
+
+  ['shuffle','shuffleOptions','weakOnly','timer'].forEach((k, i) => {
+    const id = ['tog-shuffle','tog-shuffle-opts','tog-weak','tog-timer'][i];
+    document.getElementById(id).onchange = () => {
+      config[k] = document.getElementById(id).checked;
+      saveConfig();
+      if(k === 'weakOnly' || k === 'shuffle') updateAvailCount();
+    };
+  });
+  updateAvailCount();
+}
+
+function updateCatConfig() {
+  config.categories = Array.from(document.querySelectorAll('#cat-checkboxes input:checked')).map(i => +i.value);
+  saveConfig(); updateAvailCount();
+}
+function selectAllCats(all) {
+  document.querySelectorAll('#cat-checkboxes input').forEach(i => i.checked = all);
+  config.categories = all ? categories.map(c => c.id) : [];
+  saveConfig(); updateAvailCount();
+}
+function setCount(el, val) {
+  document.querySelectorAll('#count-radio .radio-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  config.count = val === 'all' ? 'all' : +val;
+  saveConfig(); updateAvailCount();
+}
+function setMode(el, val) {
+  document.querySelectorAll('#mode-radio .radio-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  config.mode = val; saveConfig();
+}
+function updateAvailCount() {
+  const pool  = getPool();
+  const count = config.count === 'all' ? pool.length : Math.min(+config.count, pool.length);
+  document.getElementById('available-count').textContent =
+    pool.length + ' questions available' + (config.weakOnly ? ' (weak only)' : '') + ' — will use ' + count;
+}
+
+/* ================================================================
+   QUESTION POOL
+================================================================ */
+function getPool() {
+  const stats = loadStats();
+  let pool = allQuestions.filter(q => config.categories.includes(q.category));
+  if(config.weakOnly) {
+    const weak = pool.filter(q => {
+      const qs = stats.questions[q.id];
+      return !qs || qs.attempts === 0 || (qs.correct / qs.attempts) < 0.7;
+    });
+    if(weak.length >= 5) pool = weak;
+  }
+  return pool;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ================================================================
+   START TEST
+================================================================ */
+function startTest(examMode) {
+  config.examMode = !!examMode; saveConfig();
+  let questions;
+
+  if(examMode) {
+    const ei  = questionData.meta.examInfo;
+    const all = allQuestions.slice();
+    const hasWeights = categories.some(c => c.weight > 0);
+
+    if(hasWeights) {
+      const totalWeight = categories.reduce((s, c) => s + (c.weight || 0), 0);
+      questions = [];
+      categories.forEach(cat => {
+        const share  = Math.round((cat.weight || 0) / totalWeight * ei.questionCount);
+        const catPool = shuffle(all.filter(q => q.category === cat.id));
+        questions = questions.concat(catPool.slice(0, share));
+      });
+      // top-up to exact count if rounding left us short
+      const used    = new Set(questions.map(q => q.id));
+      const backfill = shuffle(all.filter(q => !used.has(q.id)));
+      while(questions.length < ei.questionCount && backfill.length) questions.push(backfill.shift());
+    } else {
+      questions = shuffle(all).slice(0, ei.questionCount);
+    }
+    questions = shuffle(questions);
+
+  } else {
+    const pool = getPool();
+    if(!pool.length) { alert('No questions match your selection.'); return; }
+    const ordered = config.shuffle ? shuffle(pool) : pool.slice();
+    const count   = config.count === 'all' ? ordered.length : Math.min(+config.count, ordered.length);
+    questions = ordered.slice(0, count);
+  }
+
+  // Optionally shuffle option order
+  const processedQs = questions.map(q => {
+    if(config.shuffleOptions || examMode) {
+      const origKeys    = Object.keys(q.options);
+      const shuffledKeys = shuffle(origKeys.slice());
+      const newOpts = {}, oldToNew = {};
+      shuffledKeys.forEach((oldKey, i) => {
+        const newKey = origKeys[i];
+        newOpts[newKey]    = q.options[oldKey];
+        oldToNew[oldKey]   = newKey;
+      });
+      return Object.assign({}, q, { options: newOpts, correct: oldToNew[q.correct] });
+    }
+    return Object.assign({}, q);
+  });
+
+  testState = {
+    questions: processedQs, idx: 0, answers: {}, flags: {},
+    startTime: Date.now(), timerInterval: null, examMode, mode: examMode ? 'summary' : config.mode
+  };
+
+  if(config.timer || examMode) {
+    const limitMs = examMode ? questionData.meta.examInfo.timeMinutes * 60 * 1000 : null;
+    testState.timerInterval = setInterval(() => {
+      const elapsed = Date.now() - testState.startTime;
+      if(examMode && elapsed >= limitMs) { clearInterval(testState.timerInterval); finishTest(); return; }
+      updateTimerDisplay(elapsed, examMode ? (limitMs - elapsed) : null, examMode);
+    }, 1000);
+  }
+
+  showView('test'); renderQuestion();
+}
+
+function startExamMode() {
+  config.categories    = categories.map(c => c.id);
+  config.mode          = 'summary';
+  config.shuffleOptions = true;
+  config.shuffle       = true;
+  startTest(true);
+}
+
+function updateTimerDisplay(elapsed, remaining, countDown) {
+  const el = document.getElementById('test-timer');
+  if(!el) return;
+  el.style.display = 'block';
+  const t = countDown ? remaining : elapsed;
+  if(t < 0) { el.textContent = '0:00'; return; }
+  const secs = Math.floor(t / 1000), m = Math.floor(secs / 60), s = secs % 60;
+  el.textContent = '&#9201; ' + m + ':' + String(s).padStart(2, '0');
+  if(countDown && t < 300000) el.style.color = 'var(--wrong)';
+}
+
+/* ================================================================
+   RENDER QUESTION
+================================================================ */
+function renderQuestion() {
+  const q       = testState.questions[testState.idx];
+  const idx     = testState.idx;
+  const total   = testState.questions.length;
+  const answered = testState.answers[idx] !== undefined;
+  const flagged  = testState.flags[idx];
+  const optKeys  = Object.keys(q.options);
+
+  document.getElementById('test-progress-label').textContent = 'Q ' + (idx + 1) + ' of ' + total;
+  document.getElementById('test-progress-bar').style.width   = (idx / total * 100) + '%';
+  if(!config.timer && !testState.examMode) document.getElementById('test-timer').style.display = 'none';
+
+  const badge = document.getElementById('q-cat-badge');
+  const cat   = catMap[q.category] || { name: 'Category ' + q.category, color: CAT_COLORS[0] };
+  badge.textContent    = cat.name;
+  badge.style.background = cat.color;
+
+  const stats = loadStats(), qs = stats.questions[q.id];
+  document.getElementById('q-stats').textContent = qs && qs.attempts > 0
+    ? 'Seen ' + qs.attempts + 'x \u00b7 ' + Math.round(qs.correct / qs.attempts * 100) + '% accurate'
+    : 'First time seeing this question';
+
+  const fb = document.getElementById('flag-btn');
+  fb.classList.toggle('flagged', !!flagged);
+  fb.title     = flagged ? 'Unflag (F)' : 'Flag for review (F)';
+  fb.innerHTML = flagged ? '&#9873;' : '&#9872;';
+
+  document.getElementById('q-text').textContent = q.question;
+
+  const locked = answered && testState.mode === 'immediate';
+  document.getElementById('q-options').innerHTML = optKeys.map(l => {
+    let cls = 'option' + (locked ? ' locked' : '');
+    const ua = testState.answers[idx];
+    if(ua) {
+      if(l === ua && l === q.correct)                             cls += ' correct';
+      else if(l === ua && l !== q.correct)                        cls += ' wrong';
+      else if(l === q.correct && testState.mode === 'immediate')  cls += ' correct';
+    }
+    return '<div class="' + cls + '" onclick="selectOption(\'' + esc(l) + '\')">' +
+      '<div class="opt-letter">' + esc(l) + '</div>' +
+      '<div class="opt-text">'   + esc(q.options[l]) + '</div>' +
+    '</div>';
+  }).join('');
+
+  const expEl = document.getElementById('q-explanation');
+  if(answered && testState.mode === 'immediate') {
+    const correct = testState.answers[idx] === q.correct;
+    expEl.innerHTML = '<span style="font-size:18px;margin-right:6px">' + (correct ? '&#x2705;' : '&#x274C;') + '</span>' +
+                      (q.explanation ? esc(q.explanation) : '');
+    expEl.classList.add('show');
+  } else {
+    expEl.classList.remove('show'); expEl.innerHTML = '';
+  }
+
+  renderTestButtons();
+}
+
+function renderTestButtons() {
+  const idx      = testState.idx;
+  const total    = testState.questions.length;
+  const answered = testState.answers[idx] !== undefined;
+  const isLast   = idx === total - 1;
+  let html = '';
+
+  if(testState.mode === 'immediate') {
+    if(answered) {
+      if(isLast) html += '<button class="btn btn-success" onclick="finishTest()">Finish &amp; Review &#9654;</button>';
+      else        html += '<button class="btn btn-primary" onclick="nextQuestion()">Next &#8594;</button>';
+    }
+  } else {
+    if(idx > 0)   html += '<button class="btn btn-secondary" onclick="prevQuestion()">&#8592; Prev</button>';
+    if(!isLast)   html += '<button class="btn btn-primary"   onclick="nextQuestion()">Next &#8594;</button>';
+    const allAnswered = testState.questions.every((_, i) => testState.answers[i] !== undefined);
+    if(isLast || allAnswered) html += '<button class="btn btn-success" onclick="finishTest()">Submit &#9654;</button>';
+  }
+  document.getElementById('test-btn-row').innerHTML = html;
+}
+
+function selectOption(letter) {
+  const idx = testState.idx, q = testState.questions[idx];
+  if(testState.mode === 'immediate' && testState.answers[idx] !== undefined) return;
+  testState.answers[idx] = letter;
+
+  const stats = loadStats();
+  if(!stats.questions[q.id]) stats.questions[q.id] = { attempts: 0, correct: 0 };
+  stats.questions[q.id].attempts++;
+  if(letter === q.correct) stats.questions[q.id].correct++;
+  saveStats(stats);
+  renderQuestion();
+}
+
+function nextQuestion() { if(testState.idx < testState.questions.length - 1) { testState.idx++; renderQuestion(); window.scrollTo(0,0); } }
+function prevQuestion() { if(testState.idx > 0) { testState.idx--; renderQuestion(); window.scrollTo(0,0); } }
+function toggleFlag()   { testState.flags[testState.idx] = !testState.flags[testState.idx]; renderQuestion(); }
+
+function confirmQuit() {
+  if(confirm('Quit this test? Progress will be lost.')) {
+    if(testState && testState.timerInterval) clearInterval(testState.timerInterval);
+    testState = null; showView('home');
+  }
+}
+
+/* ================================================================
+   FINISH TEST
+================================================================ */
+function finishTest() {
+  if(testState.timerInterval) clearInterval(testState.timerInterval);
+  const elapsed = Math.floor((Date.now() - testState.startTime) / 1000);
+  let score = 0;
+  testState.questions.forEach((q, i) => { if(testState.answers[i] === q.correct) score++; });
+
+  const stats = loadStats();
+  stats.sessions.push({
+    date: new Date().toISOString(),
+    categories: config.categories.slice(),
+    count: testState.questions.length,
+    mode: testState.mode, score,
+    total: testState.questions.length,
+    elapsed, examMode: testState.examMode
+  });
+  saveStats(stats);
+  showView('review');
+  renderReview(score, testState.questions.length, elapsed);
+}
+
+/* ================================================================
+   REVIEW
+================================================================ */
+let reviewFilter = 'all';
+
+function renderReview(score, total, elapsed) {
+  const ei        = questionData.meta.examInfo;
+  const threshold = testState.examMode ? (ei && ei.passingPercent || 83) : 70;
+  const pct       = Math.round(score / total * 100);
+  const pass      = pct >= threshold;
+
+  document.getElementById('review-score-num').textContent = score + '/' + total;
+  document.getElementById('review-score-pct').textContent = pct + '%';
+  document.getElementById('review-circle').style.borderColor = pass ? 'var(--correct)' : 'var(--wrong)';
+  document.getElementById('review-pass-badge').innerHTML =
+    '<div class="pass-badge ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '&#x2705; PASS' : '&#x274C; FAIL') + '</div>';
+
+  const modeLabel = testState.examMode ? 'Exam Simulation' : (testState.mode === 'immediate' ? 'Immediate Feedback' : 'Summary');
+  document.getElementById('review-meta').textContent = modeLabel + ' \u00b7 ' + fmtTime(elapsed) + ' \u00b7 ' + new Date().toLocaleDateString();
+
+  const catStats = {};
+  categories.forEach(cat => catStats[cat.id] = { correct: 0, total: 0 });
+  testState.questions.forEach((q, i) => {
+    if(!catStats[q.category]) return;
+    catStats[q.category].total++;
+    if(testState.answers[i] === q.correct) catStats[q.category].correct++;
+  });
+
+  let tHtml = '<thead><tr><th>Category</th><th>Score</th><th>Accuracy</th><th></th></tr></thead><tbody>';
+  categories.forEach(cat => {
+    const cs = catStats[cat.id];
+    if(!cs || !cs.total) return;
+    const dp = Math.round(cs.correct / cs.total * 100);
+    tHtml +=
+      '<tr>' +
+        '<td style="color:' + cat.color + ';font-weight:600">' + esc(cat.name) + '</td>' +
+        '<td>' + cs.correct + '/' + cs.total + '</td>' +
+        '<td style="font-weight:700;color:' + (dp >= 70 ? 'var(--correct)' : 'var(--wrong)') + '">' + dp + '%</td>' +
+        '<td><div class="mini-bar-wrap"><div class="mini-bar" style="width:' + dp + '%;background:' + cat.color + '"></div></div></td>' +
+      '</tr>';
+  });
+  document.getElementById('review-cat-table').innerHTML = tHtml + '</tbody>';
+  reviewFilter = 'all';
+  renderReviewList();
+}
+
+function setReviewFilter(f, el) {
+  reviewFilter = f;
+  document.querySelectorAll('#review-filter-row .btn').forEach(b => b.classList.remove('active-filter'));
+  el.classList.add('active-filter');
+  renderReviewList();
+}
+
+function renderReviewList() {
+  const items    = testState.questions.map((q, i) => ({ q, i, ua: testState.answers[i], flagged: testState.flags[i] }));
+  let filtered   = items;
+  if(reviewFilter === 'wrong')   filtered = items.filter(x => x.ua !== x.q.correct);
+  if(reviewFilter === 'correct') filtered = items.filter(x => x.ua === x.q.correct);
+  if(reviewFilter === 'flagged') filtered = items.filter(x => x.flagged);
+
+  if(!filtered.length) {
+    document.getElementById('review-list').innerHTML = '<div class="empty">No questions match this filter.</div>';
+    return;
+  }
+
+  const cat4q = q => catMap[q.category] || { name: 'Category ' + q.category, color: CAT_COLORS[0] };
+
+  document.getElementById('review-list').innerHTML = filtered.map(({ q, i, ua, flagged }) => {
+    const correct  = ua === q.correct;
+    const icon     = correct ? '&#x2705;' : (ua ? '&#x274C;' : '&mdash;');
+    const optKeys  = Object.keys(q.options);
+    const cat      = cat4q(q);
+    return '<div class="review-item">' +
+      '<div class="review-header" onclick="this.nextElementSibling.classList.toggle(\'open\')">' +
+        '<span>' + icon + '</span>' +
+        '<span style="color:var(--muted);font-size:13px;min-width:30px">#' + (i + 1) + '</span>' +
+        '<span style="flex:1;font-size:14px">' + esc(q.question.substring(0, 90)) + (q.question.length > 90 ? '&hellip;' : '') + '</span>' +
+        (flagged ? '<span class="flagged-marker">&#9873;</span>' : '') +
+        '<span style="color:' + cat.color + ';font-size:12px;font-weight:700;white-space:nowrap">' + esc(cat.name.split(' ')[0]) + '</span>' +
+        '<span style="color:var(--muted2);font-size:18px">&#8964;</span>' +
+      '</div>' +
+      '<div class="review-body">' +
+        '<div class="review-q">' + esc(q.question) + '</div>' +
+        '<div class="review-options">' +
+          optKeys.map(l => {
+            let cls = 'review-opt rv-neutral';
+            if(l === q.correct)          cls = 'review-opt rv-correct';
+            if(l === ua && l !== q.correct) cls = 'review-opt rv-wrong';
+            return '<div class="' + cls + '">' +
+              '<strong>' + esc(l) + '.</strong> ' + esc(q.options[l]) +
+              (l === q.correct ? ' &#x2705;' : '') +
+              (l === ua && l !== q.correct ? ' &larr; Your answer' : '') +
+            '</div>';
+          }).join('') +
+        '</div>' +
+        (q.explanation ? '<div class="review-exp">' + esc(q.explanation) + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ================================================================
+   RETAKE
+================================================================ */
+function retakeTest() {
+  const qs = testState.questions.slice();
+  testState = {
+    questions: qs, idx: 0, answers: {}, flags: {},
+    startTime: Date.now(), timerInterval: null,
+    examMode: config.examMode, mode: config.examMode ? 'summary' : config.mode
+  };
+  if(config.timer || config.examMode) {
+    const limitMs = config.examMode ? questionData.meta.examInfo.timeMinutes * 60 * 1000 : null;
+    testState.timerInterval = setInterval(() => {
+      const elapsed = Date.now() - testState.startTime;
+      if(config.examMode && elapsed >= limitMs) { clearInterval(testState.timerInterval); finishTest(); return; }
+      updateTimerDisplay(elapsed, config.examMode ? (limitMs - elapsed) : null, config.examMode);
+    }, 1000);
+  }
+  showView('test'); renderQuestion();
+}
+
+/* ================================================================
+   HISTORY
+================================================================ */
+function renderHistory() {
+  document.getElementById('history-sub').textContent = 'Sessions for: ' + questionData.meta.name;
+  const stats    = loadStats();
+  const sessions = stats.sessions.slice().reverse();
+  if(!sessions.length) {
+    document.getElementById('history-list').innerHTML = '<div class="empty">No sessions yet.</div>';
+    return;
+  }
+  const ei = questionData.meta.examInfo;
+  document.getElementById('history-list').innerHTML = sessions.map(s => {
+    const pct    = Math.round(s.score / s.total * 100);
+    const thresh = s.examMode ? (ei && ei.passingPercent || 83) : 70;
+    const pass   = pct >= thresh;
+    const cats   = (s.categories || []).map(id => catMap[id] ? catMap[id].name : id).join(', ') || 'All';
+    return '<div class="session-item">' +
+      '<div class="session-score ' + (pass ? 's-pass' : 's-fail') + '">' + pct + '%</div>' +
+      '<div class="session-meta">' +
+        '<div>' + s.score + '/' + s.total + ' correct &bull; ' + (pass ? 'Pass' : 'Fail') + '</div>' +
+        '<div>' + fmtDate(s.date) + ' &bull; ' + esc(cats) + ' &bull; ' + (s.examMode ? 'Exam' : s.mode || 'immediate') + ' &bull; ' + (s.elapsed ? fmtTime(s.elapsed) : '—') + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function clearHistory() {
+  if(confirm('Clear all history and stats for "' + questionData.meta.name + '"? This cannot be undone.')) {
+    localStorage.removeItem(statsKey());
+    renderHistory(); renderHome();
+  }
+}
+
+/* ================================================================
+   KEYBOARD SHORTCUTS
+================================================================ */
+document.addEventListener('keydown', e => {
+  if(document.querySelector('.view.active').id !== 'view-test') return;
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if(!testState) return;
+  const k       = e.key.toUpperCase();
+  const optKeys = Object.keys(testState.questions[testState.idx].options);
+  if     (['1','A'].includes(k) && optKeys[0]) { e.preventDefault(); selectOption(optKeys[0]); }
+  else if(['2','B'].includes(k) && optKeys[1]) { e.preventDefault(); selectOption(optKeys[1]); }
+  else if(['3','C'].includes(k) && optKeys[2]) { e.preventDefault(); selectOption(optKeys[2]); }
+  else if(['4','D'].includes(k) && optKeys[3]) { e.preventDefault(); selectOption(optKeys[3]); }
+  else if(k === 'ENTER')       { e.preventDefault(); const btns = document.querySelectorAll('#test-btn-row .btn'); if(btns.length) btns[btns.length-1].click(); }
+  else if(k === 'F' || k === ' ') { e.preventDefault(); toggleFlag(); }
+  else if(k === 'ARROWRIGHT')  { e.preventDefault(); nextQuestion(); }
+  else if(k === 'ARROWLEFT')   { e.preventDefault(); prevQuestion(); }
+});
+
+/* ================================================================
+   UTILS
+================================================================ */
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtTime(secs) { const m = Math.floor(secs / 60), s = secs % 60; return m + 'm ' + String(s).padStart(2,'0') + 's'; }
+function fmtDate(iso)  { try { return new Date(iso).toLocaleString(); } catch(e) { return iso || '—'; } }
+
+/* ================================================================
+   INIT
+================================================================ */
+tryRestoreCache();
+</script>
+</body>
+</html>

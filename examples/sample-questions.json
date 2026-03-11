@@ -1,0 +1,172 @@
+{
+  "meta": {
+    "name": "Testmaker Sample Set",
+    "description": "A small demo showing all supported features",
+    "version": "1.0",
+    "author": "Testmaker",
+    "categories": [
+      { "id": 1, "name": "Networking Basics", "weight": 50 },
+      { "id": 2, "name": "Security Concepts", "weight": 50 }
+    ],
+    "examInfo": {
+      "questionCount": 10,
+      "timeMinutes": 10,
+      "passingPercent": 75
+    }
+  },
+  "questions": [
+    {
+      "id": "net_q1",
+      "category": 1,
+      "question": "Which layer of the OSI model is responsible for logical addressing and routing?",
+      "options": {
+        "A": "Data Link Layer",
+        "B": "Network Layer",
+        "C": "Transport Layer",
+        "D": "Session Layer"
+      },
+      "correct": "B",
+      "explanation": "The Network Layer (Layer 3) handles logical addressing (IP addresses) and routing packets between networks. The Data Link layer handles physical addressing (MAC addresses)."
+    },
+    {
+      "id": "net_q2",
+      "category": 1,
+      "question": "What is the default subnet mask for a Class C IP address?",
+      "options": {
+        "A": "255.0.0.0",
+        "B": "255.255.0.0",
+        "C": "255.255.255.0",
+        "D": "255.255.255.255"
+      },
+      "correct": "C",
+      "explanation": "Class C networks use a /24 prefix, which corresponds to a subnet mask of 255.255.255.0. This allows up to 254 usable host addresses per network."
+    },
+    {
+      "id": "net_q3",
+      "category": 1,
+      "question": "Which protocol operates at the Transport layer and provides connection-oriented, reliable delivery?",
+      "options": {
+        "A": "UDP",
+        "B": "ICMP",
+        "C": "TCP",
+        "D": "ARP"
+      },
+      "correct": "C",
+      "explanation": "TCP (Transmission Control Protocol) is connection-oriented and guarantees delivery via acknowledgements, sequencing, and retransmission. UDP is connectionless and provides no delivery guarantees."
+    },
+    {
+      "id": "net_q4",
+      "category": 1,
+      "question": "What does DNS stand for?",
+      "options": {
+        "A": "Dynamic Network Service",
+        "B": "Domain Name System",
+        "C": "Data Node Switching",
+        "D": "Distributed Network Storage"
+      },
+      "correct": "B",
+      "explanation": "DNS stands for Domain Name System. It translates human-readable domain names (like example.com) into IP addresses that computers use to identify each other."
+    },
+    {
+      "id": "net_q5",
+      "category": 1,
+      "question": "Which port does HTTPS use by default?",
+      "options": {
+        "A": "80",
+        "B": "8080",
+        "C": "443",
+        "D": "8443"
+      },
+      "correct": "C",
+      "explanation": "HTTPS uses port 443 by default. HTTP uses port 80. Ports 8080 and 8443 are common alternatives but are not the default standard ports."
+    },
+    {
+      "id": "sec_q1",
+      "category": 2,
+      "question": "What type of attack involves an attacker intercepting communications between two parties without their knowledge?",
+      "options": {
+        "A": "Phishing",
+        "B": "Man-in-the-Middle (MitM)",
+        "C": "SQL Injection",
+        "D": "Denial of Service"
+      },
+      "correct": "B",
+      "explanation": "A Man-in-the-Middle attack occurs when an attacker secretly intercepts and potentially alters communications between two parties who believe they are communicating directly with each other."
+    },
+    {
+      "id": "sec_q2",
+      "category": 2,
+      "question": "Which of the following BEST describes the principle of least privilege?",
+      "options": {
+        "A": "Users should have administrator rights to perform their jobs effectively",
+        "B": "Users should be granted only the minimum access rights necessary for their role",
+        "C": "All users should share the same access level to simplify management",
+        "D": "Access rights should be assigned based on seniority"
+      },
+      "correct": "B",
+      "explanation": "The principle of least privilege states that users, programs, and systems should be granted only the minimum rights needed to perform their legitimate functions. This limits the damage that can result from accidents or attacks."
+    },
+    {
+      "id": "sec_q3",
+      "category": 2,
+      "question": "What does MFA stand for in a security context?",
+      "options": {
+        "A": "Managed Firewall Access",
+        "B": "Multi-Factor Authentication",
+        "C": "Mandatory File Authorization",
+        "D": "Multiple Firewall Architecture"
+      },
+      "correct": "B",
+      "explanation": "MFA stands for Multi-Factor Authentication. It requires users to verify their identity using two or more factors from different categories: something you know (password), something you have (token), or something you are (biometric)."
+    },
+    {
+      "id": "sec_q4",
+      "category": 2,
+      "question": "Which encryption standard is considered the current industry standard for symmetric encryption?",
+      "options": {
+        "A": "DES",
+        "B": "3DES",
+        "C": "AES",
+        "D": "RC4"
+      },
+      "correct": "C",
+      "explanation": "AES (Advanced Encryption Standard) is the current industry standard for symmetric encryption. DES and 3DES are considered outdated, and RC4 has known vulnerabilities. AES supports key sizes of 128, 192, and 256 bits."
+    },
+    {
+      "id": "sec_q5",
+      "category": 2,
+      "question": "A user receives an email claiming to be from their bank, asking them to click a link and verify account details. This is an example of what attack?",
+      "options": {
+        "A": "Vishing",
+        "B": "Smishing",
+        "C": "Phishing",
+        "D": "Whaling"
+      },
+      "correct": "C",
+      "explanation": "This is a phishing attack — a fraudulent email designed to trick users into revealing sensitive information. Vishing uses voice calls, smishing uses SMS, and whaling specifically targets high-profile executives."
+    },
+    {
+      "id": "sec_q6",
+      "category": 2,
+      "question": "True or False: A firewall can protect against insider threats where a trusted user intentionally misuses their access.",
+      "options": {
+        "True": "True",
+        "False": "False"
+      },
+      "correct": "False",
+      "explanation": "False. Firewalls control network traffic between segments or the internet, but they are not designed to detect or prevent malicious actions by users who already have legitimate internal access. Insider threats require different controls such as user activity monitoring, least-privilege policies, and access reviews."
+    },
+    {
+      "id": "net_q6",
+      "category": 1,
+      "question": "Which of the following is a private (RFC 1918) IP address range?",
+      "options": {
+        "A": "192.168.0.0/16",
+        "B": "8.8.8.0/24",
+        "C": "172.32.0.0/16"
+      },
+      "correct": "A",
+      "explanation": "RFC 1918 defines three private address ranges: 10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16. The address 8.8.8.0/24 is a public Google address, and 172.32.0.0/16 falls outside the private 172.16.0.0–172.31.255.255 range."
+    }
+  ]
+}

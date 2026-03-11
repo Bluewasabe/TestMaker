@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/testmaker/testmaker/blob/main/schemas/questions.schema.json",
+  "title": "Testmaker Question Set",
+  "description": "Schema for question data files used with the Testmaker quiz engine.",
+  "type": "object",
+  "required": ["meta", "questions"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the question set.",
+      "required": ["name", "categories"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name for the question set. Shown in the app header.",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the question set."
+        },
+        "version": {
+          "type": "string",
+          "description": "Optional version string (e.g. \"1.0\")."
+        },
+        "author": {
+          "type": "string",
+          "description": "Optional author or source attribution."
+        },
+        "examInfo": {
+          "type": "object",
+          "description": "Optional. When present, enables Exam Simulation mode in the app.",
+          "required": ["questionCount", "timeMinutes", "passingPercent"],
+          "additionalProperties": false,
+          "properties": {
+            "questionCount": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of questions in the simulated exam."
+            },
+            "timeMinutes": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Time limit for the exam in minutes."
+            },
+            "passingPercent": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Passing score as a percentage (e.g. 75 means 75%)."
+            }
+          }
+        },
+        "categories": {
+          "type": "array",
+          "description": "List of categories/domains. Each question must belong to one.",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "name"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "Unique integer identifier for this category. Used by questions[].category. MUST be an integer, not a string."
+              },
+              "name": {
+                "type": "string",
+                "description": "Display name for the category.",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Optional percentage weight for exam simulation. If any category has a weight, all should have weights summing to 100."
+              }
+            }
+          }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "The list of questions.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "question", "options", "correct"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this question within the file.",
+            "minLength": 1
+          },
+          "category": {
+            "type": "integer",
+            "description": "Must match a meta.categories[].id value. MUST be an integer, not a string."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question text.",
+            "minLength": 1
+          },
+          "options": {
+            "type": "object",
+            "description": "Answer options. Keys are option labels (e.g. A/B/C/D, 1/2/3, True/False). Values are the option text. Minimum 2 options required.",
+            "minProperties": 2,
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "correct": {
+            "type": "string",
+            "description": "The key from options that is the correct answer (e.g. \"B\"). Must match a key in the options object.",
+            "minLength": 1
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Optional explanation shown after answering. Strongly recommended but not required."
+          }
+        }
+      }
+    }
+  }
+}
