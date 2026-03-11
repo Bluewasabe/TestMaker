@@ -455,9 +455,10 @@ sub parse_question_block {
         # ── Inline answer marker ─────────────────────────────────────────────
         # "Answer: B", "Correct Answer: B", "Correct: B"
         if ($line =~ /^\s*(?:Correct\s+)?Answers?(?:\s+Key)?:\s*([A-Da-dTF][a-z]*)\b(.*)/i) {
-            $correct //= ucfirst(lc($1)) if $1 =~ /true|false/i;
-            $correct //= uc($1);
-            my $rest = $2 // '';
+            my ($ans, $rest) = ($1, $2 // '');
+            if (!defined $correct) {
+                $correct = ($ans =~ /^(true|false)$/i) ? ucfirst(lc($ans)) : uc($ans);
+            }
             $rest =~ s/^[\s\-–—.:]+//;
             push @explanation_lines, $rest if $rest =~ /\S/;
             $state = $STATE_POST;

@@ -25,7 +25,7 @@ This project is designed to be published publicly on GitHub. Before every push:
 
 ## Current Build State — 2026-03-11
 
-**Status: Phase 2 complete. Phases 3–6 replanned (see PLAN.md).**
+**Status: Phase 3 complete. Next: Phase 4 — Documentation (README.md + DEV.md).**
 
 | File | Done | Phase |
 |------|------|-------|
@@ -34,13 +34,13 @@ This project is designed to be published publicly on GitHub. Before every push:
 | `engine/quiz-engine.html` | ✅ | 1 |
 | `schemas/questions.schema.json` | ✅ | 2 |
 | `examples/sample-questions.json` | ✅ | 2 |
-| `parsers/extract-questions.pl` | ⬜ | 3 |
-| `parsers/secplus-parser.pl` | ⬜ | 3 |
+| `parsers/extract-questions.pl` | ✅ | 3 |
+| `parsers/secplus-parser.pl` | ✅ | 3 |
 | `README.md` | ⬜ | 4 |
 | `DEV.md` | ⬜ | 4 |
 | `parsers/ai-extract.pl` | ⬜ | 6 |
 
-**Next step for a new session:** Phase 3 — write `parsers/extract-questions.pl`, a free regex/heuristic Perl parser (no API, no cost). Supports `.txt`, `.html`, `.pdf` (via pdftotext). Detects numbered questions, lettered options, answer keys, explanations, and chapter headings for category inference.
+**Next step for a new session:** Phase 4 — write `README.md` (user-focused) and `DEV.md` (developer-focused). See PLAN.md Phase 4 for full task list.
 
 ---
 

@@ -9,14 +9,14 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 ## Status
 
-**Last updated: 2026-03-11**
+**Last updated: 2026-03-11** *(Phase 3 complete)*
 
 | Phase | Milestone | Status |
 |-------|-----------|--------|
 | — | Project planning | ✅ Done |
 | 1 | Quiz engine (port from SecurityPlus) | ✅ Done |
 | 2 | Question schema + validation + sample set | ✅ Done |
-| 3 | Free question parser (regex/heuristic) | ⬜ Pending |
+| 3 | Free question parser (regex/heuristic) | ✅ Done |
 | 4 | Documentation (README + DEV.md) | ⬜ Pending |
 | 5 | Testing & polish | ⬜ Pending |
 | 6 | AI model integration (enhancement) | ⬜ Pending |
@@ -32,8 +32,8 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | `engine/quiz-engine.html` | ✅ | 1 | Self-contained quiz app — no questions embedded, loads from JSON |
 | `schemas/questions.schema.json` | ✅ | 2 | Formal JSON schema for question data |
 | `examples/sample-questions.json` | ✅ | 2 | 10 sample questions across 2 categories demonstrating all features |
-| `parsers/extract-questions.pl` | ⬜ | 3 | Free regex/heuristic parser (any structured text/PDF → JSON) |
-| `parsers/secplus-parser.pl` | ⬜ | 3 | Reference parser kept from SecurityTester project |
+| `parsers/extract-questions.pl` | ✅ | 3 | Free regex/heuristic parser (any structured text/PDF → JSON) |
+| `parsers/secplus-parser.pl` | ✅ | 3 | Reference parser kept from SecurityTester project |
 | `README.md` | ⬜ | 4 | User-focused: how to use the app |
 | `DEV.md` | ⬜ | 4 | Dev-focused: architecture, schema, how to build compatible data |
 | `parsers/ai-extract.pl` | ⬜ | 6 | AI-powered extractor — multi-provider, cost transparency, chunking |
@@ -110,29 +110,33 @@ Define and document the canonical format for question data files.
 A zero-cost command-line Perl parser that converts structured text/PDF documents into valid `questions.json` files using regex and heuristics — no API key or internet connection required.
 
 ### Input handling
-- [ ] Accept `.txt`, `.html`/`.htm`, and `.pdf` (PDF via `pdftotext` system command)
-- [ ] HTML: strip tags, decode common entities
-- [ ] Graceful error if file not found or format unsupported
+- [x] Accept `.txt`, `.html`/`.htm`, and `.pdf` (PDF via `pdftotext` system command)
+- [x] HTML: strip tags, decode common entities
+- [x] Graceful error if file not found or format unsupported
 
 ### Pattern detection
-- [ ] Detect numbered questions (`1.`, `Q1.`, `Question 1:`, etc.)
-- [ ] Detect lettered options (`A.`, `A)`, `(A)`, `a.` etc.)
-- [ ] Detect True/False questions
-- [ ] Detect answer keys (inline `Answer: B` or separate answer key section)
-- [ ] Detect explanations (`Explanation:`, `Rationale:`, `Why:` etc.)
-- [ ] Infer categories from headings (`Chapter 3`, `Section:`, `##`, all-caps lines)
+- [x] Detect numbered questions (`1.`, `Q1.`, `Question 1:`, etc.)
+- [x] Detect lettered options (`A.`, `A)`, `(A)`, `a.` etc.)
+- [x] Detect True/False questions
+- [x] Detect answer keys (inline `Answer: B` or separate answer key section)
+- [x] Detect explanations (`Explanation:`, `Rationale:`, `Why:` etc.)
+- [x] Infer categories from headings (`Chapter 3`, `Section:`, `##`, all-caps lines)
 
 ### Output
-- [ ] Output valid JSON matching `questions.schema.json`
-- [ ] Auto-generate `id` values (`cat1_q1`, `cat2_q3`, etc.)
-- [ ] Flag low-confidence questions with a stderr warning and `_review` comment in output
-- [ ] `--output / -o FILE` — write to file instead of stdout
-- [ ] `--name / -n NAME` — override question set name (default: derived from filename)
-- [ ] `--author / -a NAME` — optional author field
-- [ ] `--help / -h` — usage info
+- [x] Output valid JSON matching `questions.schema.json`
+- [x] Auto-generate `id` values (`cat1_q1`, `cat2_q3`, etc.)
+- [x] Flag low-confidence questions with a stderr warning and `_review` comment in output
+- [x] `--output / -o FILE` — write to file instead of stdout
+- [x] `--name / -n NAME` — override question set name (default: derived from filename)
+- [x] `--author / -a NAME` — optional author field
+- [x] `--help / -h` — usage info
 
 ### Phase 3 — Lessons Learned
-> _To be filled in when Phase 3 is complete._
+- **Save `$1`/`$2` to locals immediately.** In Perl, any subsequent regex (`$1 =~ /pattern/`) resets `$1` and `$2` even in the same expression. Using them in an `if $1 =~ /...` condition and then referencing `$1` in the conditional body gives undef. Always: `my ($x, $y) = ($1, $2)` right after the match.
+- **State machine is more robust than a joined-string regex for options.** A line-by-line state machine handles multi-line question text and multi-line options naturally. Trying to parse a whole joined block with one regex fails on edge cases and produces confusing captures.
+- **Separate answer key section detection works well when scanned from the end.** The last occurrence of a line matching `answer key|answers` is almost certainly the section header. Scanning from the end avoids false positives on "Answer: B" inline markers in the question body.
+- **The `|` delimiter in Perl `s///` conflicts with alternation.** `s|</?(p|div)|...|` is ambiguous — the parser reads `|` as the delimiter and breaks the alternation. Use `s{...}{...}` for substitutions whose patterns contain `|`.
+- **True/False answers need normalized casing.** Option keys in the schema are `"True"` / `"False"` (title case). The parser must produce `ucfirst(lc($ans))` when it detects a True/False answer, not `uc()`, or the answer won't match the option key.
 
 ---
 
