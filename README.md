@@ -86,7 +86,9 @@ See `DEV.md` for the full field reference and annotated schema.
 
 ### Option C — Parse an existing document (free, no API key)
 
-If you have a study guide, textbook chapter, or practice test in `.txt`, `.html`, or `.pdf` format, the included parser converts it to a valid question file automatically.
+If you already have a document that contains multiple-choice or True/False questions — a study guide, practice test book, or exported quiz — the included parser reads it and converts the existing questions to a valid question file.
+
+> **Important:** The parser *extracts* questions that are already written in your document. It does not generate or invent new questions. Your document must contain the questions, answer options, and (ideally) an answer key.
 
 **Requirements:** Perl 5.10+ (pre-installed on macOS and most Linux systems; Windows users can use [Strawberry Perl](https://strawberryperl.com/))
 

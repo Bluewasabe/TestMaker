@@ -604,6 +604,13 @@ sub show_help {
     print <<'HELP';
 extract-questions.pl — Free heuristic question parser for Testmaker
 
+PURPOSE
+    Extracts existing questions from a document that already contains
+    multiple-choice or True/False questions with answer keys.
+
+    This tool does NOT generate or invent questions. Your document must
+    already have the questions written — options, and ideally an answer key.
+
 USAGE
     perl extract-questions.pl [OPTIONS] <file>
 
