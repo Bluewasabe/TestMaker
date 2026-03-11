@@ -9,7 +9,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 ## Status
 
-**Last updated: 2026-03-11** *(Phase 4 complete)*
+**Last updated: 2026-03-11** *(Phase 5 complete)*
 
 | Phase | Milestone | Status |
 |-------|-----------|--------|
@@ -18,7 +18,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | 2 | Question schema + validation + sample set | ✅ Done |
 | 3 | Free question parser (regex/heuristic) | ✅ Done |
 | 4 | Documentation (README + DEV.md) | ✅ Done |
-| 5 | Testing & polish | ⬜ Pending |
+| 5 | Testing & polish | ✅ Done |
 | 6 | AI model integration (enhancement) | ⬜ Pending |
 
 ---
@@ -37,6 +37,10 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | `README.md` | ✅ | 4 | User-focused: how to use the app |
 | `DEV.md` | ✅ | 4 | Dev-focused: architecture, schema, how to build compatible data |
 | `parsers/ai-extract.pl` | ⬜ | 6 | AI-powered extractor — multi-provider, cost transparency, chunking |
+| `tests/test-inline-answers.txt` | ✅ | 5 | Parser test: inline `Answer: X` format |
+| `tests/test-answer-key.txt` | ✅ | 5 | Parser test: separate answer key section format |
+| `tests/test-truefalse.txt` | ✅ | 5 | Parser test: bare True/False option lines + mixed format |
+| `tests/compare-secplus.pl` | ✅ | 5 | Comparison tool: general vs purpose-built parser vs SecurityTester reference |
 | `PLAN.md` | ✅ | — | This file |
 | `CLAUDE.md` | ✅ | — | AI session handoff context |
 
@@ -166,15 +170,33 @@ A zero-cost command-line Perl parser that converts structured text/PDF documents
 
 ## Phase 5 — Testing & Polish
 
-- [ ] Test quiz engine with `sample-questions.json` end-to-end
-- [ ] Test free parser against at least 3 different input formats
-- [ ] Verify schema validation errors display correctly in the engine
-- [ ] Cross-browser check (Chrome, Firefox, Edge) for `quiz-engine.html`
-- [ ] Review all user-facing text for clarity
-- [ ] Final copyright scan before push
+- [x] Test quiz engine with `sample-questions.json` end-to-end
+- [x] Test free parser against at least 3 different input formats
+- [x] Verify schema validation errors display correctly in the engine
+- [ ] Cross-browser check (Chrome, Firefox, Edge) for `quiz-engine.html` *(manual; deferred to pre-release)*
+- [x] Review all user-facing text for clarity
+- [x] Final copyright scan before push
+- [x] Run free parser + purpose-built parser against David Seidl PDF; compare to SecurityTester reference (1,005 questions) — results in Lessons Learned
 
 ### Phase 5 — Lessons Learned
-> _To be filled in when Phase 5 is complete._
+
+**Parser bug fixed: bare True/False option lines not detected in STATE_Q**
+The `extract-questions.pl` state machine only matched bare `True`/`False` option lines when already in `STATE_OPTS` (i.e., after at least one `A.` option was found). For True/False questions where "True" and "False" appear on their own lines directly below the question text, the state machine was still in `STATE_Q` and absorbed them as question text. Fix: fire the True/False option check when `$state eq STATE_Q` and `@question_lines` is non-empty.
+
+**Parser: .txt files must handle Windows-1252 encoding**
+Real-world PDF-extracted text files (e.g., pdftotext output from Sybex books) are often saved in Windows-1252 (cp1252), not UTF-8. Opening with `<:utf8` causes a fatal error on bytes like `\xAE` (®) and `\xA9` (©). Fix: open as `:raw`, decode as UTF-8 with `Encode::FB_CROAK`, fall back to `cp1252` on failure, and warn on stderr. This keeps UTF-8 clean files working without change.
+
+**Seidl PDF format: general parser cannot handle single-line question layout**
+The pdftotext output from the Seidl Security+ book collapses each question and its four options onto a single line. The general heuristic parser (line-by-line state machine) can locate question numbers but cannot split `"Question text? A. opt B. opt C. opt D. opt"` into distinct fields. Result: 1,006 question titles found, 0 cleanly parsed, 1,006 review flags. The purpose-built `secplus-parser.pl` handles this via a single-line regex and gets 1,005/1,005 complete questions — matching SecurityTester exactly. **This is expected and correct.** The general parser is designed for multi-line formatted text; single-line format requires a purpose-built parser.
+
+**Comparison tool: `tests/compare-secplus.pl`**
+A Perl script was added to automate the parser comparison: runs both parsers against `secplus.txt`, loads the SecurityTester reference, and prints a side-by-side stats table. Useful for future regression testing after parser changes. The Seidl content is not committed — the script runs locally and reports stats only.
+
+**schema validation in engine checks only first 5 questions**
+The `validateData()` function in `quiz-engine.html` checks `min(5, questions.length)` items. This is intentional for performance, but means a file with valid first 5 questions and broken later ones will load without an error. Documented as a known limitation. Users should use the JSON schema (`schemas/questions.schema.json`) for full validation.
+
+**sample-questions.json: 12 questions, all valid**
+Validated programmatically: all 12 questions have valid categories, correct answers that exist in options, and explanations. 4-option, 3-option, and 2-option (True/False) formats all present and passing.
 
 ---
 

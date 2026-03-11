@@ -38,7 +38,7 @@ Show the PR URL to the user after creating it.
 
 ## Current Build State — 2026-03-11
 
-**Status: Phase 4 complete. Next: Phase 5 — Testing & Polish.**
+**Status: Phase 5 complete. Next: Phase 6 — AI Model Integration (optional enhancement).**
 
 | File | Done | Phase |
 |------|------|-------|
@@ -47,13 +47,17 @@ Show the PR URL to the user after creating it.
 | `engine/quiz-engine.html` | ✅ | 1 |
 | `schemas/questions.schema.json` | ✅ | 2 |
 | `examples/sample-questions.json` | ✅ | 2 |
-| `parsers/extract-questions.pl` | ✅ | 3 |
+| `parsers/extract-questions.pl` | ✅ | 3 (patched Phase 5) |
 | `parsers/secplus-parser.pl` | ✅ | 3 |
 | `README.md` | ✅ | 4 |
 | `DEV.md` | ✅ | 4 |
+| `tests/test-inline-answers.txt` | ✅ | 5 |
+| `tests/test-answer-key.txt` | ✅ | 5 |
+| `tests/test-truefalse.txt` | ✅ | 5 |
+| `tests/compare-secplus.pl` | ✅ | 5 |
 | `parsers/ai-extract.pl` | ⬜ | 6 |
 
-**Next step for a new session:** Phase 5 — end-to-end testing of engine + parser, cross-browser check, user-facing text review, copyright scan. See PLAN.md Phase 5.
+**Next step for a new session:** Phase 6 — AI extractor (`parsers/ai-extract.pl`). Multi-provider (Anthropic, OpenAI, Ollama), cost transparency before API calls, `--dry-run`, `--chunk` for large docs, `--merge` to append to existing JSON. See PLAN.md Phase 6.
 
 ---
 
@@ -72,13 +76,18 @@ Testmaker/
 ├── engine/
 │   └── quiz-engine.html       ← THE APP (self-contained, loads external JSON)
 ├── parsers/
-│   ├── extract-questions.pl   ← Free regex/heuristic parser (Phase 3)
+│   ├── extract-questions.pl   ← Free regex/heuristic parser (Phase 3, patched Phase 5)
 │   ├── ai-extract.pl          ← AI-powered extractor, multi-provider (Phase 6)
 │   └── secplus-parser.pl      ← Reference: SecurityTester-specific parser (Phase 3)
 ├── schemas/
 │   └── questions.schema.json  ← Formal JSON Schema for question data
 ├── examples/
-│   └── sample-questions.json  ← 10 demo questions
+│   └── sample-questions.json  ← 12 demo questions (validated Phase 5)
+├── tests/
+│   ├── test-inline-answers.txt  ← Parser test: inline Answer: X format
+│   ├── test-answer-key.txt      ← Parser test: separate answer key section
+│   ├── test-truefalse.txt       ← Parser test: bare True/False options
+│   └── compare-secplus.pl       ← Comparison: general vs secplus-parser vs reference
 ├── README.md                  ← User-focused docs (Phase 4)
 ├── DEV.md                     ← Developer-focused docs (Phase 4)
 ├── PLAN.md                    ← Full project plan + task tracking
@@ -197,3 +206,11 @@ Key app features to preserve:
 ### Schema Design
 - **`explanation` intentionally optional.** Many question sources don't include explanations. The engine renders nothing (not an empty box) when the field is absent. When building question sets manually, explanations are strongly recommended but not enforced.
 - **`weight` in categories is optional.** If no categories have a `weight > 0`, exam simulation distributes questions uniformly. If any category has a weight, all categories should have weights that sum to 100 — the engine doesn't validate this, it just uses proportional math.
+
+### Parser (Phase 5 patches)
+- **Bare True/False option lines must fire in both STATE_Q and STATE_OPTS.** The original code only detected `True`/`False` bare lines when already in STATE_OPTS. For T/F questions where options appear directly below the question text (before any A/B/C/D options), state is still STATE_Q. Fix: `($state eq STATE_OPTS || ($state eq STATE_Q && @question_lines))`.
+- **Open .txt files as raw bytes, then decode.** UTF-8 strict mode crashes on Windows-1252 files (common pdftotext output). Pattern: `open '<:raw'`, `Encode::decode('UTF-8', $raw, FB_CROAK)`, fall back to `decode('cp1252', $raw)`. Warn user on fallback.
+
+### Parser Comparison — Seidl PDF Results
+- **General parser vs purpose-built on the Seidl Security+ book:** General parser found all 1,006 question numbers but could not extract options (single-line layout: `"Question? A. opt B. opt C. opt D. opt"` on one line — pdftotext artifact). Purpose-built `secplus-parser.pl` got 1,005/1,005 complete, matching SecurityTester reference exactly. General parser is correct for multi-line documents; single-line PDFs need a purpose-built parser.
+- **The `tests/compare-secplus.pl` tool** automates this comparison for regression testing. Run it after any parser changes to confirm no regressions against the reference dataset.

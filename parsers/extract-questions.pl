@@ -129,10 +129,18 @@ sub load_file {
         close $fh;
         $text = strip_html($text);
     } elsif ($ext eq 'txt') {
-        open(my $fh, '<:utf8', $path) or die "Cannot open $path: $!\n";
+        # Open as bytes first; decode as UTF-8 and fall back to Latin-1 so
+        # files saved in Windows-1252 (common for exported/scanned text) don't crash.
+        open(my $fh, '<:raw', $path) or die "Cannot open $path: $!\n";
         local $/;
-        $text = <$fh>;
+        my $raw = <$fh>;
         close $fh;
+        require Encode;
+        $text = eval { Encode::decode('UTF-8', $raw, Encode::FB_CROAK()) };
+        if ($@) {
+            $text = Encode::decode('cp1252', $raw);
+            print STDERR "Note: file decoded as Windows-1252 (not UTF-8).\n";
+        }
     } else {
         die "Unsupported file type: .$ext\n"
           . "Supported formats: .txt  .html  .htm  .pdf\n";
@@ -481,7 +489,9 @@ sub parse_question_block {
         }
 
         # ── True / False option lines (bare) ─────────────────────────────────
-        if ($line =~ /^\s*(True|False)\s*$/ && $state eq $STATE_OPTS) {
+        # Fire in STATE_OPTS OR in STATE_Q when question text is already collected
+        # (bare True/False lines appearing directly below the question text).
+        if ($line =~ /^\s*(True|False)\s*$/ && ($state eq $STATE_OPTS || ($state eq $STATE_Q && @question_lines))) {
             my $key = ucfirst(lc($1));
             unless (exists $options{$key}) {
                 push @option_order, $key;

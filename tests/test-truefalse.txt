@@ -1,0 +1,54 @@
+## General Knowledge Quiz
+
+1. The capital of France is Paris.
+True
+False
+Answer: True
+
+2. The Great Wall of China is visible from space with the naked eye.
+True
+False
+Answer: False
+Explanation: This is a common myth. The Great Wall is too narrow to be seen from orbit without aid.
+
+3. Water boils at 100 degrees Celsius at sea level.
+True
+False
+Answer: True
+Explanation: At standard atmospheric pressure (1 atm / 101.325 kPa), water boils at exactly 100C.
+
+4. Lightning never strikes the same place twice.
+True
+False
+Answer: False
+Explanation: Lightning frequently strikes the same location multiple times, especially tall structures.
+
+5. The human body has 206 bones in adulthood.
+True
+False
+Answer: True
+
+## Science Questions
+
+Q6. Does light travel faster than sound?
+A. Yes
+B. No
+C. They travel at the same speed
+D. It depends on the medium
+Answer: A
+Explanation: Light travels at roughly 300,000 km/s in a vacuum; sound travels about 343 m/s in air.
+
+Q7. What is the chemical symbol for water?
+A. W
+B. Wa
+C. H2O
+D. HO2
+Answer: C
+
+Q8. Which planet is closest to the Sun?
+A. Venus
+B. Earth
+C. Mars
+D. Mercury
+Answer: D
+Explanation: Mercury is the innermost planet at about 57.9 million km from the Sun on average.
