@@ -21,11 +21,24 @@ This project is designed to be published publicly on GitHub. Before every push:
 - After completing any logical milestone, update both `PLAN.md` and the "Current Build State" section in this file
 - This ensures continuity across AI sessions without re-reading all code
 
+## GitHub Workflow (PR-based)
+**Never push directly to `main`.** Each phase is committed on a feature branch and merged via pull request so changes are reviewable before landing.
+
+```bash
+git checkout -b phase-N-short-description
+git add <specific files>
+git commit -m "Phase N complete — summary"
+git push -u origin phase-N-short-description
+gh pr create --title "Phase N — Title" --body "What changed and why"
+```
+
+Show the PR URL to the user after creating it.
+
 ---
 
 ## Current Build State — 2026-03-11
 
-**Status: Phase 3 complete. Next: Phase 4 — Documentation (README.md + DEV.md).**
+**Status: Phase 4 complete. Next: Phase 5 — Testing & Polish.**
 
 | File | Done | Phase |
 |------|------|-------|
@@ -36,11 +49,11 @@ This project is designed to be published publicly on GitHub. Before every push:
 | `examples/sample-questions.json` | ✅ | 2 |
 | `parsers/extract-questions.pl` | ✅ | 3 |
 | `parsers/secplus-parser.pl` | ✅ | 3 |
-| `README.md` | ⬜ | 4 |
-| `DEV.md` | ⬜ | 4 |
+| `README.md` | ✅ | 4 |
+| `DEV.md` | ✅ | 4 |
 | `parsers/ai-extract.pl` | ⬜ | 6 |
 
-**Next step for a new session:** Phase 4 — write `README.md` (user-focused) and `DEV.md` (developer-focused). See PLAN.md Phase 4 for full task list.
+**Next step for a new session:** Phase 5 — end-to-end testing of engine + parser, cross-browser check, user-facing text review, copyright scan. See PLAN.md Phase 5.
 
 ---
 

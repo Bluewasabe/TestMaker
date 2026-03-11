@@ -9,7 +9,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 ## Status
 
-**Last updated: 2026-03-11** *(Phase 3 complete)*
+**Last updated: 2026-03-11** *(Phase 4 complete)*
 
 | Phase | Milestone | Status |
 |-------|-----------|--------|
@@ -17,7 +17,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | 1 | Quiz engine (port from SecurityPlus) | ✅ Done |
 | 2 | Question schema + validation + sample set | ✅ Done |
 | 3 | Free question parser (regex/heuristic) | ✅ Done |
-| 4 | Documentation (README + DEV.md) | ⬜ Pending |
+| 4 | Documentation (README + DEV.md) | ✅ Done |
 | 5 | Testing & polish | ⬜ Pending |
 | 6 | AI model integration (enhancement) | ⬜ Pending |
 
@@ -34,8 +34,8 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | `examples/sample-questions.json` | ✅ | 2 | 10 sample questions across 2 categories demonstrating all features |
 | `parsers/extract-questions.pl` | ✅ | 3 | Free regex/heuristic parser (any structured text/PDF → JSON) |
 | `parsers/secplus-parser.pl` | ✅ | 3 | Reference parser kept from SecurityTester project |
-| `README.md` | ⬜ | 4 | User-focused: how to use the app |
-| `DEV.md` | ⬜ | 4 | Dev-focused: architecture, schema, how to build compatible data |
+| `README.md` | ✅ | 4 | User-focused: how to use the app |
+| `DEV.md` | ✅ | 4 | Dev-focused: architecture, schema, how to build compatible data |
 | `parsers/ai-extract.pl` | ⬜ | 6 | AI-powered extractor — multi-provider, cost transparency, chunking |
 | `PLAN.md` | ✅ | — | This file |
 | `CLAUDE.md` | ✅ | — | AI session handoff context |
@@ -143,22 +143,24 @@ A zero-cost command-line Perl parser that converts structured text/PDF documents
 ## Phase 4 — Documentation
 
 ### README.md (User-focused)
-- [ ] What Testmaker is
-- [ ] How to open and use `quiz-engine.html`
-- [ ] How to load a question set
-- [ ] Where to get or create question sets (manual JSON, free parser, AI parser)
-- [ ] FAQ
+- [x] What Testmaker is
+- [x] How to open and use `quiz-engine.html`
+- [x] How to load a question set
+- [x] Where to get or create question sets (manual JSON, free parser, AI parser)
+- [x] FAQ
 
 ### DEV.md (Developer-focused)
-- [ ] Project architecture
-- [ ] Full `questions.json` schema with annotated example
-- [ ] How to build a compatible question set manually
-- [ ] How to run the free parser (`extract-questions.pl`)
-- [ ] Known limitations of the free parser
-- [ ] How to contribute / extend
+- [x] Project architecture
+- [x] Full `questions.json` schema with annotated example
+- [x] How to build a compatible question set manually
+- [x] How to run the free parser (`extract-questions.pl`)
+- [x] Known limitations of the free parser
+- [x] How to contribute / extend
 
 ### Phase 4 — Lessons Learned
-> _To be filled in when Phase 4 is complete._
+- README structure (User Focus → Developer Focus → Enhancement Ideas from CLAUDE.md standard) maps well onto a tool like Testmaker where the user and developer are often different people.
+- DEV.md benefits from an annotated inline-comment JSON example more than a table alone — the side-by-side format makes required vs optional fields immediately obvious.
+- Documenting known limitations explicitly (rename orphans history, localStorage quota) prevents future confusion and makes the project feel honest and well-understood.
 
 ---
 
