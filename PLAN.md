@@ -20,6 +20,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | 4 | Documentation (README + DEV.md) | ✅ Done |
 | 5 | Testing & polish | ✅ Done |
 | 6 | AI model integration (enhancement) | ⬜ Pending |
+| 7 | Docker service — PDF-first UX for non-technical users | ⬜ Pending |
 
 ---
 
@@ -230,6 +231,54 @@ An optional AI-powered upgrade to the parser. When enabled, sends document text 
 
 ### Phase 6 — Lessons Learned
 > _To be filled in when Phase 6 is complete._
+
+---
+
+## Phase 7 — Docker Service (PDF-first UX)
+
+**Goal:** A non-technical user clones the repo, runs `docker compose up`, opens a browser, drops a PDF — and gets a working practice test. No Perl install, no command line, no extra steps.
+
+### Architecture
+- Single Alpine container: Perl + poppler-utils (pdftotext) bundled
+- Minimal Perl HTTP server (`docker/server.pl`) serves the app and handles `/parse`
+- `quiz-engine.html` detects PDF drops and POSTs to `/parse` when served over HTTP
+- JSON drop-and-load (existing behavior) continues to work with or without Docker
+
+### Deliverables
+- [ ] `docker/Dockerfile` — Alpine + perl-json + poppler-utils
+- [ ] `docker/docker-compose.yml` — port 8080, restart policy, resource limits
+- [ ] `docker/server.pl` — HTTP server: `GET /` → engine HTML, `POST /parse` → run parser, return JSON
+- [ ] Modify `engine/quiz-engine.html` — detect PDF drop, POST binary to `/parse`, show spinner, load result
+- [ ] Update `README.md` — Docker quick-start as the recommended path for non-technical users
+
+### Behaviour spec
+- `GET /` → serves `quiz-engine.html`
+- `GET /sample` → serves `examples/sample-questions.json` (lets users try without a file)
+- `POST /parse` — request body = raw PDF/TXT bytes, `Content-Type` header = file type, `X-Filename` header = original filename; response = `questions.json` JSON or `{"error": "..."}` on failure
+- If quiz engine is opened as `file://` (no Docker): PDF drop shows a friendly message — "PDF parsing requires the Docker service. Drop a `.json` file instead, or see README."
+- If served over `http://`: PDF drop triggers `/parse` automatically
+
+### End-to-end user flow (Docker)
+```
+git clone https://github.com/Bluewasabe/TestMaker.git
+cd TestMaker
+docker compose up
+# open http://localhost:8080
+# drag your PDF onto the page → test starts
+```
+
+### Tasks
+- [ ] Write `docker/Dockerfile`
+- [ ] Write `docker/docker-compose.yml`
+- [ ] Write `docker/server.pl` (IO::Socket::INET, single-process, handles GET + POST)
+- [ ] Add PDF detection + `/parse` fetch to `engine/quiz-engine.html`
+- [ ] Test full flow: `docker compose up` → drop PDF → questions load
+- [ ] Update README: Docker quick-start section above existing Getting Started
+- [ ] Copyright scan
+- [ ] PR
+
+### Phase 7 — Lessons Learned
+> _To be filled in when Phase 7 is complete._
 
 ---
 

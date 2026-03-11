@@ -57,7 +57,7 @@ Show the PR URL to the user after creating it.
 | `tests/compare-secplus.pl` | ✅ | 5 |
 | `parsers/ai-extract.pl` | ⬜ | 6 |
 
-**Next step for a new session:** Phase 6 — AI extractor (`parsers/ai-extract.pl`). Multi-provider (Anthropic, OpenAI, Ollama), cost transparency before API calls, `--dry-run`, `--chunk` for large docs, `--merge` to append to existing JSON. See PLAN.md Phase 6.
+**Next step for a new session:** Phase 7 — Docker service. `docker compose up` → browser → drop PDF → test starts. Files: `docker/Dockerfile`, `docker/docker-compose.yml`, `docker/server.pl`, modify `engine/quiz-engine.html`. See PLAN.md Phase 7. Phase 6 (AI extractor) is lower priority and can follow after Phase 7.
 
 ---
 
