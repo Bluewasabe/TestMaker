@@ -25,20 +25,22 @@ This project is designed to be published publicly on GitHub. Before every push:
 
 ## Current Build State — 2026-03-11
 
-**Status: Phase 2 complete. Engine, sample data, and JSON schema ready.**
+**Status: Phase 2 complete. Phases 3–6 replanned (see PLAN.md).**
 
-| File | Done |
-|------|------|
-| `PLAN.md` | ✅ |
-| `CLAUDE.md` | ✅ |
-| `engine/quiz-engine.html` | ✅ |
-| `examples/sample-questions.json` | ✅ |
-| `parsers/extract-questions.pl` | ⬜ |
-| `schemas/questions.schema.json` | ✅ |
-| `README.md` | ⬜ |
-| `DEV.md` | ⬜ |
+| File | Done | Phase |
+|------|------|-------|
+| `PLAN.md` | ✅ | — |
+| `CLAUDE.md` | ✅ | — |
+| `engine/quiz-engine.html` | ✅ | 1 |
+| `schemas/questions.schema.json` | ✅ | 2 |
+| `examples/sample-questions.json` | ✅ | 2 |
+| `parsers/extract-questions.pl` | ⬜ | 3 |
+| `parsers/secplus-parser.pl` | ⬜ | 3 |
+| `README.md` | ⬜ | 4 |
+| `DEV.md` | ⬜ | 4 |
+| `parsers/ai-extract.pl` | ⬜ | 6 |
 
-**Next step for a new session:** Phase 3 (AI-powered question extractor `parsers/extract-questions.pl` — Perl + Claude API) or Phase 4 (README.md + DEV.md). Phase 3 is the larger piece; Phase 4 can be done independently at any time.
+**Next step for a new session:** Phase 3 — write `parsers/extract-questions.pl`, a free regex/heuristic Perl parser (no API, no cost). Supports `.txt`, `.html`, `.pdf` (via pdftotext). Detects numbered questions, lettered options, answer keys, explanations, and chapter headings for category inference.
 
 ---
 
@@ -57,14 +59,15 @@ Testmaker/
 ├── engine/
 │   └── quiz-engine.html       ← THE APP (self-contained, loads external JSON)
 ├── parsers/
-│   ├── extract-questions.pl   ← AI-powered universal extractor (Phase 3)
-│   └── secplus-parser.pl      ← Reference: SecurityTester-specific parser
+│   ├── extract-questions.pl   ← Free regex/heuristic parser (Phase 3)
+│   ├── ai-extract.pl          ← AI-powered extractor, multi-provider (Phase 6)
+│   └── secplus-parser.pl      ← Reference: SecurityTester-specific parser (Phase 3)
 ├── schemas/
 │   └── questions.schema.json  ← Formal JSON Schema for question data
 ├── examples/
 │   └── sample-questions.json  ← 10 demo questions
-├── README.md                  ← User-focused docs
-├── DEV.md                     ← Developer-focused docs
+├── README.md                  ← User-focused docs (Phase 4)
+├── DEV.md                     ← Developer-focused docs (Phase 4)
 ├── PLAN.md                    ← Full project plan + task tracking
 └── CLAUDE.md                  ← This file
 ```

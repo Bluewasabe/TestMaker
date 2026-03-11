@@ -11,18 +11,15 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 **Last updated: 2026-03-11**
 
-| Milestone | Status |
-|-----------|--------|
-| Project planning | ✅ Done |
-| Quiz engine (port from SecurityPlus) | ✅ Done |
-| JSON import / question loading | ✅ Done |
-| Question schema + validation | ✅ Done |
-| JSON Schema file | ✅ Done |
-| Sample question set | ✅ Done |
-| AI-powered question extractor | ⬜ Pending |
-| User README | ⬜ Pending |
-| Dev README | ⬜ Pending |
-| Testing & polish | ⬜ Pending |
+| Phase | Milestone | Status |
+|-------|-----------|--------|
+| — | Project planning | ✅ Done |
+| 1 | Quiz engine (port from SecurityPlus) | ✅ Done |
+| 2 | Question schema + validation + sample set | ✅ Done |
+| 3 | Free question parser (regex/heuristic) | ⬜ Pending |
+| 4 | Documentation (README + DEV.md) | ⬜ Pending |
+| 5 | Testing & polish | ⬜ Pending |
+| 6 | AI model integration (enhancement) | ⬜ Pending |
 
 ---
 
@@ -30,15 +27,18 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 | File | Status | Purpose |
 |------|--------|---------|
-| `engine/quiz-engine.html` | ✅ | Self-contained quiz app — no questions embedded, loads from JSON |
-| `parsers/extract-questions.pl` | ⬜ | AI-powered universal question extractor (any PDF/text → JSON) |
-| `parsers/secplus-parser.pl` | ⬜ | Reference parser kept from SecurityTester project |
-| `schemas/questions.schema.json` | ⬜ | Formal JSON schema for question data |
-| `examples/sample-questions.json` | ✅ | 10 sample questions across 2 categories demonstrating all features |
-| `README.md` | ⬜ | User-focused: how to use the app |
-| `DEV.md` | ⬜ | Dev-focused: architecture, schema, how to build compatible data |
-| `PLAN.md` | ✅ | This file |
-| `CLAUDE.md` | ✅ | AI session handoff context |
+| File | Status | Phase | Purpose |
+|------|--------|-------|---------|
+| `engine/quiz-engine.html` | ✅ | 1 | Self-contained quiz app — no questions embedded, loads from JSON |
+| `schemas/questions.schema.json` | ✅ | 2 | Formal JSON schema for question data |
+| `examples/sample-questions.json` | ✅ | 2 | 10 sample questions across 2 categories demonstrating all features |
+| `parsers/extract-questions.pl` | ⬜ | 3 | Free regex/heuristic parser (any structured text/PDF → JSON) |
+| `parsers/secplus-parser.pl` | ⬜ | 3 | Reference parser kept from SecurityTester project |
+| `README.md` | ⬜ | 4 | User-focused: how to use the app |
+| `DEV.md` | ⬜ | 4 | Dev-focused: architecture, schema, how to build compatible data |
+| `parsers/ai-extract.pl` | ⬜ | 6 | AI-powered extractor — multi-provider, cost transparency, chunking |
+| `PLAN.md` | ✅ | — | This file |
+| `CLAUDE.md` | ✅ | — | AI session handoff context |
 
 ---
 
@@ -105,16 +105,31 @@ Define and document the canonical format for question data files.
 
 ---
 
-## Phase 3 — AI-Powered Question Extractor
+## Phase 3 — Free Question Parser
 
-A command-line tool that takes any document and produces a valid questions.json.
+A zero-cost command-line Perl parser that converts structured text/PDF documents into valid `questions.json` files using regex and heuristics — no API key or internet connection required.
 
-- [ ] Input: PDF, plain text, or HTML file
-- [ ] Uses Claude API (claude-sonnet-4-6 or claude-opus-4-6) to extract Q&A structure
-- [ ] Outputs: valid JSON matching the schema
-- [ ] Handles: multiple choice, true/false, explanations, categories/chapters
-- [ ] Graceful fallback: flags questions it's unsure about for manual review
-- [ ] Language: Perl (consistent with SecurityTester) or Python if needed
+### Input handling
+- [ ] Accept `.txt`, `.html`/`.htm`, and `.pdf` (PDF via `pdftotext` system command)
+- [ ] HTML: strip tags, decode common entities
+- [ ] Graceful error if file not found or format unsupported
+
+### Pattern detection
+- [ ] Detect numbered questions (`1.`, `Q1.`, `Question 1:`, etc.)
+- [ ] Detect lettered options (`A.`, `A)`, `(A)`, `a.` etc.)
+- [ ] Detect True/False questions
+- [ ] Detect answer keys (inline `Answer: B` or separate answer key section)
+- [ ] Detect explanations (`Explanation:`, `Rationale:`, `Why:` etc.)
+- [ ] Infer categories from headings (`Chapter 3`, `Section:`, `##`, all-caps lines)
+
+### Output
+- [ ] Output valid JSON matching `questions.schema.json`
+- [ ] Auto-generate `id` values (`cat1_q1`, `cat2_q3`, etc.)
+- [ ] Flag low-confidence questions with a stderr warning and `_review` comment in output
+- [ ] `--output / -o FILE` — write to file instead of stdout
+- [ ] `--name / -n NAME` — override question set name (default: derived from filename)
+- [ ] `--author / -a NAME` — optional author field
+- [ ] `--help / -h` — usage info
 
 ### Phase 3 — Lessons Learned
 > _To be filled in when Phase 3 is complete._
@@ -125,20 +140,68 @@ A command-line tool that takes any document and produces a valid questions.json.
 
 ### README.md (User-focused)
 - [ ] What Testmaker is
-- [ ] How to open and use quiz-engine.html
+- [ ] How to open and use `quiz-engine.html`
 - [ ] How to load a question set
-- [ ] Where to get or create question sets
+- [ ] Where to get or create question sets (manual JSON, free parser, AI parser)
 - [ ] FAQ
 
 ### DEV.md (Developer-focused)
 - [ ] Project architecture
-- [ ] Full questions.json schema with annotated example
+- [ ] Full `questions.json` schema with annotated example
 - [ ] How to build a compatible question set manually
-- [ ] How to run the AI extractor
+- [ ] How to run the free parser (`extract-questions.pl`)
+- [ ] Known limitations of the free parser
 - [ ] How to contribute / extend
 
 ### Phase 4 — Lessons Learned
 > _To be filled in when Phase 4 is complete._
+
+---
+
+## Phase 5 — Testing & Polish
+
+- [ ] Test quiz engine with `sample-questions.json` end-to-end
+- [ ] Test free parser against at least 3 different input formats
+- [ ] Verify schema validation errors display correctly in the engine
+- [ ] Cross-browser check (Chrome, Firefox, Edge) for `quiz-engine.html`
+- [ ] Review all user-facing text for clarity
+- [ ] Final copyright scan before push
+
+### Phase 5 — Lessons Learned
+> _To be filled in when Phase 5 is complete._
+
+---
+
+## Phase 6 — AI Model Integration (Enhancement)
+
+An optional AI-powered upgrade to the parser. When enabled, sends document text to an LLM and gets back structured JSON — handles messy, inconsistently formatted documents that the regex parser cannot reliably parse.
+
+### Provider support
+- [ ] Pluggable provider system — user selects via `--provider` flag
+- [ ] **Anthropic** (default): `claude-sonnet-4-6`, `claude-haiku-4-5`
+- [ ] **OpenAI**: `gpt-4o`, `gpt-4o-mini`
+- [ ] **Ollama** (local/free): any locally running model via `http://localhost:11434`
+- [ ] API key from environment variable (never hardcoded): `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`
+
+### Cost transparency (shown before every API call)
+- [ ] Estimate input token count and display before sending
+- [ ] Show per-provider cost estimate based on current known pricing
+- [ ] Display one-time cost reminder: _"You run the extractor once; the quiz engine is free forever after"_
+- [ ] `--dry-run` flag — show token estimate and cost estimate without calling the API
+
+### Cost-saving options
+- [ ] `--model MODEL` — override default model (e.g. use Haiku instead of Sonnet to cut cost ~20x)
+- [ ] Input truncation with warning when document exceeds safe token limit
+- [ ] `--chunk` flag — split large documents by detected chapter/section and process one chunk at a time (lets you retry failed sections without re-sending the whole doc)
+- [ ] Show running cost total when `--chunk` is used across multiple calls
+
+### Output
+- [ ] Same JSON schema as free parser — output is interchangeable
+- [ ] Flag uncertain questions for manual review (stderr warning + question list)
+- [ ] `--merge FILE` — merge AI output into an existing questions.json (append questions, deduplicate by id)
+
+### Phase 6 — Lessons Learned
+> _To be filled in when Phase 6 is complete._
 
 ---
 
