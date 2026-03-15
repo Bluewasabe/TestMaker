@@ -9,7 +9,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 ## Status
 
-**Last updated: 2026-03-11** *(Phase 5 complete)*
+**Last updated: 2026-03-14** *(Phase 7 complete)*
 
 | Phase | Milestone | Status |
 |-------|-----------|--------|
@@ -20,7 +20,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | 4 | Documentation (README + DEV.md) | ✅ Done |
 | 5 | Testing & polish | ✅ Done |
 | 6 | AI model integration (enhancement) | ⬜ Pending |
-| 7 | Docker service — PDF-first UX for non-technical users | ⬜ Pending |
+| 7 | Docker service — PDF-first UX for non-technical users | ✅ Done |
 
 ---
 
@@ -268,17 +268,31 @@ docker compose up
 ```
 
 ### Tasks
-- [ ] Write `docker/Dockerfile`
-- [ ] Write `docker/docker-compose.yml`
-- [ ] Write `docker/server.pl` (IO::Socket::INET, single-process, handles GET + POST)
-- [ ] Add PDF detection + `/parse` fetch to `engine/quiz-engine.html`
-- [ ] Test full flow: `docker compose up` → drop PDF → questions load
-- [ ] Update README: Docker quick-start section above existing Getting Started
-- [ ] Copyright scan
-- [ ] PR
+- [x] Write `docker/Dockerfile`
+- [x] Write `docker/docker-compose.yml`
+- [x] Write `docker/server.pl` (IO::Socket::INET, single-process, handles GET + POST)
+- [x] Add PDF detection + `/parse` fetch to `engine/quiz-engine.html`
+- [x] Test full flow: `docker compose up` → drop PDF → questions load
+- [x] Update README: Docker quick-start section above existing Getting Started
+- [x] Copyright scan
+- [x] PR
 
 ### Phase 7 — Lessons Learned
-> _To be filled in when Phase 7 is complete._
+
+**Single-process fork model is sufficient for a personal tool.**
+`IO::Socket::INET` + `fork()` handles one request per child process. No async, no threads. For a homelab tool with one user at a time this is ideal — simple, debuggable, no CPAN event-loop dependencies.
+
+**`tempfile(UNLINK => 1)` is reliable cleanup but requires explicit `unlink` after shell exec.**
+`File::Temp` marks temp files for deletion when the handle goes out of scope. The temp input file must be explicitly `unlink`ed after the parser runs (the child process opens it via shell, not the Perl filehandle). Letting UNLINK handle it would leave the file until the child exits — fine in practice but explicit `unlink` is cleaner.
+
+**Shell single-quote escaping is correct for Alpine.**
+User-supplied X-Filename header goes into a shell command. The pattern `s/'/'\\''/g` (escape each single quote as `'\''`) correctly neutralizes shell injection inside single-quoted strings. Safe inside the Alpine container where the only shell is `/bin/sh` (ash).
+
+**quiz-engine.html protocol detection for PDF routing.**
+`window.location.protocol === 'file:'` correctly distinguishes the local-file case from the Docker-served case. PDF drops in `file://` mode now show a helpful error with Docker setup instructions. The drop zone title is also conditionally updated on load to avoid showing "Drop a PDF" when PDFs aren't supported.
+
+**HEALTHCHECK needs `wget`, not `curl`.**
+Alpine base image includes `wget` but not `curl`. The HEALTHCHECK directive must use `wget -qO-` rather than `curl -sf`. Adding `curl` as a dependency would be unnecessary overhead.
 
 ---
 
