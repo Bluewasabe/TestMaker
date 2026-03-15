@@ -94,6 +94,8 @@ sub handle_request {
     my ($method, $path, $proto) = split /\s+/, $request_line, 3;
     $path =~ s/[?#].*//;   # strip query string / fragment
 
+    warn sprintf("[%s] %s %s\n", scalar localtime, $method // '-', $path // '/');
+
     # ── Route ──────────────────────────────────────────────────────────────────
 
     if ($method eq 'GET' && $path eq '/') {
