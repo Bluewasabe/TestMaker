@@ -1150,6 +1150,12 @@ function fmtDate(iso)  { try { return new Date(iso).toLocaleString(); } catch(e)
    INIT
 ================================================================ */
 tryRestoreCache();
+
+// When opened as a local file, PDF parsing is unavailable — update the drop zone text
+if (window.location.protocol === 'file:') {
+  document.getElementById('drop-title').textContent = 'Drop a questions.json here';
+  document.getElementById('drop-sub').textContent   = 'or click to browse \u2014 PDF parsing requires the Docker service';
+}
 </script>
 </body>
 </html>
