@@ -1,6 +1,7 @@
 # CLAUDE.md — Testmaker
 
 This file provides context for AI sessions working on this project.
+Global rules (git workflow, methodology, shell env, GitHub account) live in `~/.claude/CLAUDE.md`.
 
 ## Copyright Policy
 
@@ -21,24 +22,9 @@ This project is designed to be published publicly on GitHub. Before every push:
 - After completing any logical milestone, update both `PLAN.md` and the "Current Build State" section in this file
 - This ensures continuity across AI sessions without re-reading all code
 
-## GitHub Workflow (PR-based)
-**Never push directly to `main`.** Each phase is committed on a feature branch and merged via pull request so changes are reviewable before landing.
+## Current Build State — 2026-03-14
 
-```bash
-git checkout -b phase-N-short-description
-git add <specific files>
-git commit -m "Phase N complete — summary"
-git push -u origin phase-N-short-description
-gh pr create --title "Phase N — Title" --body "What changed and why"
-```
-
-Show the PR URL to the user after creating it.
-
----
-
-## Current Build State — 2026-03-11
-
-**Status: Phase 5 complete. Next: Phase 6 — AI Model Integration (optional enhancement).**
+**Status: Phase 7 complete (PR open on phase-7-docker-service branch). Next: Phase 6 — AI Model Integration OR public launch.**
 
 | File | Done | Phase |
 |------|------|-------|
@@ -56,8 +42,11 @@ Show the PR URL to the user after creating it.
 | `tests/test-truefalse.txt` | ✅ | 5 |
 | `tests/compare-secplus.pl` | ✅ | 5 |
 | `parsers/ai-extract.pl` | ⬜ | 6 |
+| `docker/Dockerfile`             | ✅ | 7 |
+| `docker/docker-compose.yml`     | ✅ | 7 |
+| `docker/server.pl`              | ✅ | 7 |
 
-**Next step for a new session:** Phase 7 — Docker service. `docker compose up` → browser → drop PDF → test starts. Files: `docker/Dockerfile`, `docker/docker-compose.yml`, `docker/server.pl`, modify `engine/quiz-engine.html`. See PLAN.md Phase 7. Phase 6 (AI extractor) is lower priority and can follow after Phase 7.
+**Next step for a new session:** Phase 7 PR is open on `phase-7-docker-service`. Merge it. Phase 6 (AI extractor `parsers/ai-extract.pl`) is next. See PLAN.md Phase 6 for full spec. Alternatively: Quick Win features from PROJECT_REVIEW.md (export results, "New Test Same Settings" button).
 
 ---
 
@@ -138,10 +127,7 @@ Testmaker/
 ---
 
 ## Environment
-- **OS**: Windows 11 Pro, running in Git Bash (MSYS2)
-- **Paths**: Use `/c/Code/Testmaker/` in bash, `C:\Code\Testmaker\` in Windows
 - **Available**: Perl 5.38, browser (Chrome/Firefox/Edge)
-- **NOT available**: Node.js, Python (only Windows Store alias)
 - **JSON in Perl**: `use JSON;` works
 - **Claude API**: Available for the extractor — use claude-sonnet-4-6 model
 
