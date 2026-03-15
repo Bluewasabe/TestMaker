@@ -13,16 +13,25 @@ Testmaker/
 ├── engine/
 │   └── quiz-engine.html       ← The entire app — one self-contained HTML file
 ├── parsers/
-│   ├── extract-questions.pl   ← Free heuristic parser (text/HTML/PDF → JSON)
+│   ├── extract-questions.pl   ← Free heuristic parser (Phase 3, patched Phase 5)
 │   └── secplus-parser.pl      ← Reference parser (SecurityTester-specific, kept for reference)
 ├── schemas/
-│   └── questions.schema.json  ← Formal JSON Schema (draft-07)
+│   └── questions.schema.json  ← Formal JSON Schema for question data
 ├── examples/
-│   └── sample-questions.json  ← 10 demo questions
-├── README.md                  ← User-facing docs
+│   └── sample-questions.json  ← 12 demo questions
+├── tests/
+│   ├── test-inline-answers.txt  ← Parser test: inline Answer: X format
+│   ├── test-answer-key.txt      ← Parser test: separate answer key section
+│   ├── test-truefalse.txt       ← Parser test: bare True/False options
+│   └── compare-secplus.pl       ← Comparison: general vs secplus-parser vs reference
+├── docker/
+│   ├── Dockerfile             ← Alpine + Perl + poppler; non-root user; HEALTHCHECK
+│   ├── docker-compose.yml     ← Port 8080, memory + CPU limits, log rotation
+│   └── server.pl              ← HTTP server: GET / → engine, POST /parse → parser
+├── README.md                  ← User-focused docs
 ├── DEV.md                     ← This file
 ├── PLAN.md                    ← Phase plan and task tracking
-└── CLAUDE.md                  ← AI session context
+└── CLAUDE.md                  ← AI session handoff context
 ```
 
 ### quiz-engine.html
@@ -91,6 +100,51 @@ flowchart LR
 - Active question set lives in memory as `window.qs` (the parsed JSON object).
 - All persistent data is stored in `localStorage` (see [localStorage schema](#localstorage-schema) below).
 - The app is entirely stateless between page loads — it reconstructs state from localStorage on startup.
+
+---
+
+## Docker Service
+
+The optional Docker service (`docker/`) bundles the Perl runtime and `pdftotext` (Poppler) so non-technical users can drop a PDF and get a working practice test without any local installs.
+
+### Architecture
+
+```
+git clone → docker compose up → http://localhost:8080 → drop PDF → test starts
+```
+
+A single Alpine container runs `docker/server.pl` — a minimal Perl HTTP server with five routes:
+
+| Method | Path | Response |
+|--------|------|----------|
+| GET | `/` | Serves `engine/quiz-engine.html` |
+| GET | `/sample` | Serves `examples/sample-questions.json` |
+| GET | `/schema` | Serves `schemas/questions.schema.json` |
+| GET | `/health` | `200 OK` (for container health checks) |
+| POST | `/parse` | Runs `parsers/extract-questions.pl` on uploaded file; returns `questions.json` |
+
+### POST /parse request format
+
+```
+Content-Type: application/pdf   (or text/plain, text/html)
+X-Filename:   original-name.pdf  (used to derive the question set name)
+Body:         raw file bytes (max 50 MB)
+```
+
+Response on success: `questions.json` body with headers:
+- `X-Parse-Warnings: true/false`
+- `X-Review-Count: N` (number of `[REVIEW]`-flagged questions)
+
+### Running locally
+
+```bash
+docker compose -f docker/docker-compose.yml up
+# open http://localhost:8080
+```
+
+### PDF detection in quiz-engine.html
+
+When served over `http://`, the engine detects PDF/TXT drops and POSTs to `/parse` automatically. When opened as `file://`, the drop zone title updates on load to say "Drop a questions.json here" and PDF drops show a friendly error with Docker setup instructions.
 
 ---
 
