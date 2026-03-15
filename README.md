@@ -82,7 +82,7 @@ All data is saved in your browser's localStorage — no account or cloud needed.
 
 ### Option A — Use the sample file (instant)
 
-`examples/sample-questions.json` contains 10 demo questions across two categories. Load it to explore all app features.
+`examples/sample-questions.json` contains 12 demo questions across two categories. Load it to explore all app features.
 
 ### Option B — Write a question set manually
 
