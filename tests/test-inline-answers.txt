@@ -1,0 +1,63 @@
+Chapter 1: Network Fundamentals
+
+1. Which protocol operates at the Transport layer of the OSI model?
+A. IP
+B. HTTP
+C. TCP
+D. ARP
+Answer: C
+Explanation: TCP (Transmission Control Protocol) operates at Layer 4, the Transport layer. IP is Layer 3, HTTP is Layer 7, and ARP is Layer 2.
+
+2. What is the default port for HTTPS?
+A. 80
+B. 8080
+C. 443
+D. 8443
+Answer: C
+Explanation: HTTPS uses port 443 by default. Port 80 is HTTP, and 8080/8443 are common alternate ports.
+
+3. A subnet mask of 255.255.255.0 indicates how many host bits?
+A. 8
+B. 16
+C. 24
+D. 32
+Answer: A
+Explanation: /24 means 24 network bits and 8 host bits, allowing 254 usable hosts.
+
+4. Which device operates at Layer 2 of the OSI model?
+A. Router
+B. Hub
+C. Switch
+D. Firewall
+Answer: C
+
+5. True or False: UDP guarantees packet delivery.
+A. True
+B. False
+Answer: B
+Explanation: UDP is connectionless and does not guarantee delivery. That is a characteristic of TCP.
+
+Chapter 2: Security Basics
+
+6. What does CIA stand for in information security?
+A. Central Intelligence Agency
+B. Confidentiality, Integrity, Availability
+C. Cipher, Identity, Authentication
+D. Control, Integrity, Access
+Answer: B
+Explanation: The CIA triad is the foundational security model: Confidentiality (data access controls), Integrity (data accuracy), and Availability (system uptime).
+
+7. Which attack type tricks a user into clicking a malicious link disguised as a legitimate one?
+A. SQL injection
+B. Cross-site scripting
+C. Clickjacking
+D. Buffer overflow
+Answer: C
+
+8. What is the purpose of a salt in password hashing?
+A. To encrypt the password
+B. To prevent rainbow table attacks
+C. To compress the hash
+D. To speed up authentication
+Answer: B
+Explanation: A salt is random data added to a password before hashing, making precomputed rainbow table attacks ineffective.

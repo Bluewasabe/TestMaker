@@ -9,7 +9,7 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 
 ## Status
 
-**Last updated: 2026-03-11** *(Phase 4 complete)*
+**Last updated: 2026-03-14** *(Phase 7 complete)*
 
 | Phase | Milestone | Status |
 |-------|-----------|--------|
@@ -18,8 +18,9 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | 2 | Question schema + validation + sample set | ✅ Done |
 | 3 | Free question parser (regex/heuristic) | ✅ Done |
 | 4 | Documentation (README + DEV.md) | ✅ Done |
-| 5 | Testing & polish | ⬜ Pending |
+| 5 | Testing & polish | ✅ Done |
 | 6 | AI model integration (enhancement) | ⬜ Pending |
+| 7 | Docker service — PDF-first UX for non-technical users | ✅ Done |
 
 ---
 
@@ -37,6 +38,10 @@ Derived from the SecurityPlus practice test app (see `c:\Code\SecurityTester\`),
 | `README.md` | ✅ | 4 | User-focused: how to use the app |
 | `DEV.md` | ✅ | 4 | Dev-focused: architecture, schema, how to build compatible data |
 | `parsers/ai-extract.pl` | ⬜ | 6 | AI-powered extractor — multi-provider, cost transparency, chunking |
+| `tests/test-inline-answers.txt` | ✅ | 5 | Parser test: inline `Answer: X` format |
+| `tests/test-answer-key.txt` | ✅ | 5 | Parser test: separate answer key section format |
+| `tests/test-truefalse.txt` | ✅ | 5 | Parser test: bare True/False option lines + mixed format |
+| `tests/compare-secplus.pl` | ✅ | 5 | Comparison tool: general vs purpose-built parser vs SecurityTester reference |
 | `PLAN.md` | ✅ | — | This file |
 | `CLAUDE.md` | ✅ | — | AI session handoff context |
 
@@ -166,15 +171,33 @@ A zero-cost command-line Perl parser that converts structured text/PDF documents
 
 ## Phase 5 — Testing & Polish
 
-- [ ] Test quiz engine with `sample-questions.json` end-to-end
-- [ ] Test free parser against at least 3 different input formats
-- [ ] Verify schema validation errors display correctly in the engine
-- [ ] Cross-browser check (Chrome, Firefox, Edge) for `quiz-engine.html`
-- [ ] Review all user-facing text for clarity
-- [ ] Final copyright scan before push
+- [x] Test quiz engine with `sample-questions.json` end-to-end
+- [x] Test free parser against at least 3 different input formats
+- [x] Verify schema validation errors display correctly in the engine
+- [ ] Cross-browser check (Chrome, Firefox, Edge) for `quiz-engine.html` *(manual; deferred to pre-release)*
+- [x] Review all user-facing text for clarity
+- [x] Final copyright scan before push
+- [x] Run free parser + purpose-built parser against David Seidl PDF; compare to SecurityTester reference (1,005 questions) — results in Lessons Learned
 
 ### Phase 5 — Lessons Learned
-> _To be filled in when Phase 5 is complete._
+
+**Parser bug fixed: bare True/False option lines not detected in STATE_Q**
+The `extract-questions.pl` state machine only matched bare `True`/`False` option lines when already in `STATE_OPTS` (i.e., after at least one `A.` option was found). For True/False questions where "True" and "False" appear on their own lines directly below the question text, the state machine was still in `STATE_Q` and absorbed them as question text. Fix: fire the True/False option check when `$state eq STATE_Q` and `@question_lines` is non-empty.
+
+**Parser: .txt files must handle Windows-1252 encoding**
+Real-world PDF-extracted text files (e.g., pdftotext output from Sybex books) are often saved in Windows-1252 (cp1252), not UTF-8. Opening with `<:utf8` causes a fatal error on bytes like `\xAE` (®) and `\xA9` (©). Fix: open as `:raw`, decode as UTF-8 with `Encode::FB_CROAK`, fall back to `cp1252` on failure, and warn on stderr. This keeps UTF-8 clean files working without change.
+
+**Seidl PDF format: general parser cannot handle single-line question layout**
+The pdftotext output from the Seidl Security+ book collapses each question and its four options onto a single line. The general heuristic parser (line-by-line state machine) can locate question numbers but cannot split `"Question text? A. opt B. opt C. opt D. opt"` into distinct fields. Result: 1,006 question titles found, 0 cleanly parsed, 1,006 review flags. The purpose-built `secplus-parser.pl` handles this via a single-line regex and gets 1,005/1,005 complete questions — matching SecurityTester exactly. **This is expected and correct.** The general parser is designed for multi-line formatted text; single-line format requires a purpose-built parser.
+
+**Comparison tool: `tests/compare-secplus.pl`**
+A Perl script was added to automate the parser comparison: runs both parsers against `secplus.txt`, loads the SecurityTester reference, and prints a side-by-side stats table. Useful for future regression testing after parser changes. The Seidl content is not committed — the script runs locally and reports stats only.
+
+**schema validation in engine checks only first 5 questions**
+The `validateData()` function in `quiz-engine.html` checks `min(5, questions.length)` items. This is intentional for performance, but means a file with valid first 5 questions and broken later ones will load without an error. Documented as a known limitation. Users should use the JSON schema (`schemas/questions.schema.json`) for full validation.
+
+**sample-questions.json: 12 questions, all valid**
+Validated programmatically: all 12 questions have valid categories, correct answers that exist in options, and explanations. 4-option, 3-option, and 2-option (True/False) formats all present and passing.
 
 ---
 
@@ -208,6 +231,68 @@ An optional AI-powered upgrade to the parser. When enabled, sends document text 
 
 ### Phase 6 — Lessons Learned
 > _To be filled in when Phase 6 is complete._
+
+---
+
+## Phase 7 — Docker Service (PDF-first UX)
+
+**Goal:** A non-technical user clones the repo, runs `docker compose up`, opens a browser, drops a PDF — and gets a working practice test. No Perl install, no command line, no extra steps.
+
+### Architecture
+- Single Alpine container: Perl + poppler-utils (pdftotext) bundled
+- Minimal Perl HTTP server (`docker/server.pl`) serves the app and handles `/parse`
+- `quiz-engine.html` detects PDF drops and POSTs to `/parse` when served over HTTP
+- JSON drop-and-load (existing behavior) continues to work with or without Docker
+
+### Deliverables
+- [ ] `docker/Dockerfile` — Alpine + perl-json + poppler-utils
+- [ ] `docker/docker-compose.yml` — port 8080, restart policy, resource limits
+- [ ] `docker/server.pl` — HTTP server: `GET /` → engine HTML, `POST /parse` → run parser, return JSON
+- [ ] Modify `engine/quiz-engine.html` — detect PDF drop, POST binary to `/parse`, show spinner, load result
+- [ ] Update `README.md` — Docker quick-start as the recommended path for non-technical users
+
+### Behaviour spec
+- `GET /` → serves `quiz-engine.html`
+- `GET /sample` → serves `examples/sample-questions.json` (lets users try without a file)
+- `POST /parse` — request body = raw PDF/TXT bytes, `Content-Type` header = file type, `X-Filename` header = original filename; response = `questions.json` JSON or `{"error": "..."}` on failure
+- If quiz engine is opened as `file://` (no Docker): PDF drop shows a friendly message — "PDF parsing requires the Docker service. Drop a `.json` file instead, or see README."
+- If served over `http://`: PDF drop triggers `/parse` automatically
+
+### End-to-end user flow (Docker)
+```
+git clone https://github.com/Bluewasabe/TestMaker.git
+cd TestMaker
+docker compose up
+# open http://localhost:8080
+# drag your PDF onto the page → test starts
+```
+
+### Tasks
+- [x] Write `docker/Dockerfile`
+- [x] Write `docker/docker-compose.yml`
+- [x] Write `docker/server.pl` (IO::Socket::INET, single-process, handles GET + POST)
+- [x] Add PDF detection + `/parse` fetch to `engine/quiz-engine.html`
+- [x] Test full flow: `docker compose up` → drop PDF → questions load
+- [x] Update README: Docker quick-start section above existing Getting Started
+- [x] Copyright scan
+- [x] PR
+
+### Phase 7 — Lessons Learned
+
+**Single-process fork model is sufficient for a personal tool.**
+`IO::Socket::INET` + `fork()` handles one request per child process. No async, no threads. For a homelab tool with one user at a time this is ideal — simple, debuggable, no CPAN event-loop dependencies.
+
+**`tempfile(UNLINK => 1)` is reliable cleanup but requires explicit `unlink` after shell exec.**
+`File::Temp` marks temp files for deletion when the handle goes out of scope. The temp input file must be explicitly `unlink`ed after the parser runs (the child process opens it via shell, not the Perl filehandle). Letting UNLINK handle it would leave the file until the child exits — fine in practice but explicit `unlink` is cleaner.
+
+**Shell single-quote escaping is correct for Alpine.**
+User-supplied X-Filename header goes into a shell command. The pattern `s/'/'\\''/g` (escape each single quote as `'\''`) correctly neutralizes shell injection inside single-quoted strings. Safe inside the Alpine container where the only shell is `/bin/sh` (ash).
+
+**quiz-engine.html protocol detection for PDF routing.**
+`window.location.protocol === 'file:'` correctly distinguishes the local-file case from the Docker-served case. PDF drops in `file://` mode now show a helpful error with Docker setup instructions. The drop zone title is also conditionally updated on load to avoid showing "Drop a PDF" when PDFs aren't supported.
+
+**HEALTHCHECK needs `wget`, not `curl`.**
+Alpine base image includes `wget` but not `curl`. The HEALTHCHECK directive must use `wget -qO-` rather than `curl -sf`. Adding `curl` as a dependency would be unnecessary overhead.
 
 ---
 

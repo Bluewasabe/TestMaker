@@ -1,6 +1,7 @@
 # CLAUDE.md — Testmaker
 
 This file provides context for AI sessions working on this project.
+Global rules (git workflow, methodology, shell env, GitHub account) live in `~/.claude/CLAUDE.md`.
 
 ## Copyright Policy
 
@@ -21,24 +22,9 @@ This project is designed to be published publicly on GitHub. Before every push:
 - After completing any logical milestone, update both `PLAN.md` and the "Current Build State" section in this file
 - This ensures continuity across AI sessions without re-reading all code
 
-## GitHub Workflow (PR-based)
-**Never push directly to `main`.** Each phase is committed on a feature branch and merged via pull request so changes are reviewable before landing.
+## Current Build State — 2026-03-14
 
-```bash
-git checkout -b phase-N-short-description
-git add <specific files>
-git commit -m "Phase N complete — summary"
-git push -u origin phase-N-short-description
-gh pr create --title "Phase N — Title" --body "What changed and why"
-```
-
-Show the PR URL to the user after creating it.
-
----
-
-## Current Build State — 2026-03-11
-
-**Status: Phase 4 complete. Next: Phase 5 — Testing & Polish.**
+**Status: Phase 7 complete (PR open on phase-7-docker-service branch). Next: Phase 6 — AI Model Integration OR public launch.**
 
 | File | Done | Phase |
 |------|------|-------|
@@ -47,13 +33,20 @@ Show the PR URL to the user after creating it.
 | `engine/quiz-engine.html` | ✅ | 1 |
 | `schemas/questions.schema.json` | ✅ | 2 |
 | `examples/sample-questions.json` | ✅ | 2 |
-| `parsers/extract-questions.pl` | ✅ | 3 |
+| `parsers/extract-questions.pl` | ✅ | 3 (patched Phase 5) |
 | `parsers/secplus-parser.pl` | ✅ | 3 |
 | `README.md` | ✅ | 4 |
 | `DEV.md` | ✅ | 4 |
+| `tests/test-inline-answers.txt` | ✅ | 5 |
+| `tests/test-answer-key.txt` | ✅ | 5 |
+| `tests/test-truefalse.txt` | ✅ | 5 |
+| `tests/compare-secplus.pl` | ✅ | 5 |
 | `parsers/ai-extract.pl` | ⬜ | 6 |
+| `docker/Dockerfile`             | ✅ | 7 |
+| `docker/docker-compose.yml`     | ✅ | 7 |
+| `docker/server.pl`              | ✅ | 7 |
 
-**Next step for a new session:** Phase 5 — end-to-end testing of engine + parser, cross-browser check, user-facing text review, copyright scan. See PLAN.md Phase 5.
+**Next step for a new session:** Phase 7 PR is open on `phase-7-docker-service`. Merge it. Phase 6 (AI extractor `parsers/ai-extract.pl`) is next. See PLAN.md Phase 6 for full spec. Alternatively: Quick Win features from PROJECT_REVIEW.md (export results, "New Test Same Settings" button).
 
 ---
 
@@ -72,13 +65,18 @@ Testmaker/
 ├── engine/
 │   └── quiz-engine.html       ← THE APP (self-contained, loads external JSON)
 ├── parsers/
-│   ├── extract-questions.pl   ← Free regex/heuristic parser (Phase 3)
+│   ├── extract-questions.pl   ← Free regex/heuristic parser (Phase 3, patched Phase 5)
 │   ├── ai-extract.pl          ← AI-powered extractor, multi-provider (Phase 6)
 │   └── secplus-parser.pl      ← Reference: SecurityTester-specific parser (Phase 3)
 ├── schemas/
 │   └── questions.schema.json  ← Formal JSON Schema for question data
 ├── examples/
-│   └── sample-questions.json  ← 10 demo questions
+│   └── sample-questions.json  ← 12 demo questions (validated Phase 5)
+├── tests/
+│   ├── test-inline-answers.txt  ← Parser test: inline Answer: X format
+│   ├── test-answer-key.txt      ← Parser test: separate answer key section
+│   ├── test-truefalse.txt       ← Parser test: bare True/False options
+│   └── compare-secplus.pl       ← Comparison: general vs secplus-parser vs reference
 ├── README.md                  ← User-focused docs (Phase 4)
 ├── DEV.md                     ← Developer-focused docs (Phase 4)
 ├── PLAN.md                    ← Full project plan + task tracking
@@ -129,10 +127,7 @@ Testmaker/
 ---
 
 ## Environment
-- **OS**: Windows 11 Pro, running in Git Bash (MSYS2)
-- **Paths**: Use `/c/Code/Testmaker/` in bash, `C:\Code\Testmaker\` in Windows
 - **Available**: Perl 5.38, browser (Chrome/Firefox/Edge)
-- **NOT available**: Node.js, Python (only Windows Store alias)
 - **JSON in Perl**: `use JSON;` works
 - **Claude API**: Available for the extractor — use claude-sonnet-4-6 model
 
@@ -197,3 +192,11 @@ Key app features to preserve:
 ### Schema Design
 - **`explanation` intentionally optional.** Many question sources don't include explanations. The engine renders nothing (not an empty box) when the field is absent. When building question sets manually, explanations are strongly recommended but not enforced.
 - **`weight` in categories is optional.** If no categories have a `weight > 0`, exam simulation distributes questions uniformly. If any category has a weight, all categories should have weights that sum to 100 — the engine doesn't validate this, it just uses proportional math.
+
+### Parser (Phase 5 patches)
+- **Bare True/False option lines must fire in both STATE_Q and STATE_OPTS.** The original code only detected `True`/`False` bare lines when already in STATE_OPTS. For T/F questions where options appear directly below the question text (before any A/B/C/D options), state is still STATE_Q. Fix: `($state eq STATE_OPTS || ($state eq STATE_Q && @question_lines))`.
+- **Open .txt files as raw bytes, then decode.** UTF-8 strict mode crashes on Windows-1252 files (common pdftotext output). Pattern: `open '<:raw'`, `Encode::decode('UTF-8', $raw, FB_CROAK)`, fall back to `decode('cp1252', $raw)`. Warn user on fallback.
+
+### Parser Comparison — Seidl PDF Results
+- **General parser vs purpose-built on the Seidl Security+ book:** General parser found all 1,006 question numbers but could not extract options (single-line layout: `"Question? A. opt B. opt C. opt D. opt"` on one line — pdftotext artifact). Purpose-built `secplus-parser.pl` got 1,005/1,005 complete, matching SecurityTester reference exactly. General parser is correct for multi-line documents; single-line PDFs need a purpose-built parser.
+- **The `tests/compare-secplus.pl` tool** automates this comparison for regression testing. Run it after any parser changes to confirm no regressions against the reference dataset.

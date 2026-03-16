@@ -1,0 +1,76 @@
+Section 1: Cryptography
+
+1. Which algorithm is considered asymmetric encryption?
+A. AES
+B. DES
+C. RSA
+D. 3DES
+
+2. What does a digital signature verify?
+A. The encryption strength of a message
+B. The authenticity and integrity of a message
+C. The compression ratio of a file
+D. The length of a public key
+
+3. Which key length is currently recommended for AES encryption?
+A. 56 bits
+B. 128 bits
+C. 192 bits
+D. 256 bits
+
+4. What is a hash function's primary security property?
+A. It is reversible given the key
+B. It produces fixed-length output from variable input
+C. It uses two keys for encryption and decryption
+D. It is the same as symmetric encryption
+
+5. Which protocol uses asymmetric cryptography to establish a shared session key?
+A. AES
+B. SHA-256
+C. TLS
+D. MD5
+
+Section 2: Access Control
+
+6. Which access control model assigns permissions based on job roles?
+A. MAC
+B. DAC
+C. RBAC
+D. ABAC
+
+7. What does least privilege mean?
+A. Users can access any resource they need
+B. Users receive only the minimum permissions required to do their job
+C. Administrators have unrestricted access
+D. All users share the same permission level
+
+8. Which authentication factor is a fingerprint?
+A. Something you know
+B. Something you have
+C. Something you are
+D. Somewhere you are
+
+9. What is single sign-on (SSO)?
+A. A method of encrypting passwords
+B. A way to authenticate once and access multiple systems
+C. A hardware token for MFA
+D. A protocol for hashing credentials
+
+10. Which protocol is commonly used for federated identity?
+A. Kerberos
+B. RADIUS
+C. SAML
+D. NTLM
+
+Answer Key
+
+1. C
+2. B
+3. D
+4. B
+5. C
+6. C
+7. B
+8. C
+9. B
+10. C

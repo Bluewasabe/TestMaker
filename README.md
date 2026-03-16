@@ -1,16 +1,45 @@
 # Testmaker
 
-A self-contained, browser-based practice test engine. Works with any subject — you bring your own question data as a JSON file; the engine handles testing, scoring, progress tracking, and history.
-
-No server. No install. No internet required after download. Open `engine/quiz-engine.html` directly in your browser.
+A browser-based practice test engine. Works with any subject — bring your own question data as a PDF, text file, or JSON file; the engine handles testing, scoring, progress tracking, and history.
 
 ---
 
-## Getting Started
+## Quick Start — Docker (recommended for most users)
+
+The Docker version is the easiest way to get started. It bundles everything — no Perl, no extra installs. Drop a PDF and your test is ready.
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS / Linux)
+
+```bash
+git clone https://github.com/Bluewasabe/TestMaker.git
+cd TestMaker
+docker compose -f docker/docker-compose.yml up
+```
+
+Then open **http://localhost:8080** in your browser and drop a PDF onto the page.
+
+> To stop the service: `Ctrl+C` in the terminal, or `docker compose -f docker/docker-compose.yml down`
+
+---
+
+## Getting Started — No Docker (JSON files only)
+
+If you already have a `questions.json` file or prefer not to use Docker, `engine/quiz-engine.html` works as a standalone local file with no dependencies.
 
 ### 1. Open the app
 
-Download or clone this repository, then open `engine/quiz-engine.html` in any modern browser (Chrome, Firefox, or Edge).
+Download or clone this repository:
+
+```bash
+git clone https://github.com/Bluewasabe/TestMaker.git
+cd TestMaker
+```
+
+Then open `engine/quiz-engine.html` directly in your browser:
+
+- **Windows:** double-click `engine\quiz-engine.html` in File Explorer, or drag it onto an open browser window
+- **macOS:** double-click `engine/quiz-engine.html` in Finder, or right-click → Open With → your browser
+- **Linux:** right-click the file → Open With → browser, or run `xdg-open engine/quiz-engine.html` in a terminal
 
 No web server is needed — the file runs from your local disk.
 
@@ -18,9 +47,11 @@ No web server is needed — the file runs from your local disk.
 
 On the welcome screen, either:
 - **Drag and drop** a `.json` question file onto the page, or
-- Click **Load Question Set** and pick a file.
+- Click **Browse Files** and pick a file.
 
 The app ships with a working demo file at `examples/sample-questions.json` — use it to try things out immediately.
+
+> **Note:** PDF and `.txt` files can only be dropped when using the Docker service (they require server-side processing). When opening the HTML file directly, drop a `.json` file.
 
 ### 3. Start a test
 
@@ -51,7 +82,7 @@ All data is saved in your browser's localStorage — no account or cloud needed.
 
 ### Option A — Use the sample file (instant)
 
-`examples/sample-questions.json` contains 10 demo questions across two categories. Load it to explore all app features.
+`examples/sample-questions.json` contains 12 demo questions across two categories. Load it to explore all app features.
 
 ### Option B — Write a question set manually
 
@@ -86,25 +117,49 @@ See `DEV.md` for the full field reference and annotated schema.
 
 ### Option C — Parse an existing document (free, no API key)
 
-If you have a study guide, textbook chapter, or practice test in `.txt`, `.html`, or `.pdf` format, the included parser converts it to a valid question file automatically.
+If you already have a document that contains multiple-choice or True/False questions — a study guide, practice test book, or exported quiz — the included parser reads it and converts the existing questions to a valid question file.
 
-**Requirements:** Perl 5.10+ (pre-installed on macOS and most Linux systems; Windows users can use [Strawberry Perl](https://strawberryperl.com/))
+> **Important:** The parser *extracts* questions that are already written in your document. It does not generate or invent new questions. Your document must contain the questions, answer options, and (ideally) an answer key.
 
-**PDF support:** requires `pdftotext` from [Poppler](https://poppler.freedesktop.org/) to be on your PATH.
+#### Step 1 — Install the requirements
+
+**Perl 5.10+** is required to run the parser:
+- macOS / Linux: already installed — check with `perl --version`
+- Windows: download [Strawberry Perl](https://strawberryperl.com/) and install it
+
+**For PDF input**, `pdftotext` (from the Poppler library) must be on your PATH:
+- **Windows:** `winget install GnuWin32.GnuWin32` or `choco install poppler`
+- **macOS:** `brew install poppler`
+- **Linux (Debian/Ubuntu):** `sudo apt install poppler-utils`
+- **Linux (Fedora/RHEL):** `sudo dnf install poppler-utils`
+
+Verify with: `pdftotext --version`
+
+#### Step 2 — Run the parser
 
 ```bash
-# Basic usage — outputs to stdout
-perl parsers/extract-questions.pl my-study-guide.txt
+# Parse a PDF and write to a JSON file
+perl parsers/extract-questions.pl my-study-guide.pdf -o my-questions.json
 
-# Write directly to a file
+# Add a name and author to the output metadata
+perl parsers/extract-questions.pl my-study-guide.pdf \
+  -n "Network+ Practice" -a "Jane Smith" -o my-questions.json
+
+# Works the same way with .txt and .html files
 perl parsers/extract-questions.pl my-study-guide.txt -o my-questions.json
-
-# Set a name and author
-perl parsers/extract-questions.pl my-study-guide.txt \
-  -n "Network+ Practice" -a "Jane Smith" -o network.json
 ```
 
-The parser detects numbered questions, lettered options, answer keys, explanations, and chapter/section headings automatically. Questions it isn't confident about are flagged on stderr and marked in the output for manual review.
+The parser detects numbered questions, lettered options, answer keys, explanations, and chapter/section headings automatically. Questions it isn't confident about are flagged on stderr — review those before loading.
+
+#### Step 3 — Load the output in the app
+
+Open `engine/quiz-engine.html` in your browser, then drag and drop `my-questions.json` onto the welcome screen (or click **Browse Files** and select it).
+
+#### Troubleshooting
+
+- **`[REVIEW]` warnings on stderr** — the parser wasn't confident about those questions. Open the JSON in a text editor, find the `"_review": true` entries, fix them manually, and remove the `_review` and `_note` fields before loading.
+- **Parser finds questions but no options** — your PDF likely uses a single-line layout where options are on the same line as the question (a common pdftotext artifact). This requires a custom parser; see `DEV.md` for guidance.
+- **0 questions extracted** — the document's question numbering format may not match. Run with a `.txt` version of your document if possible, or open an issue.
 
 ### Option D — AI-powered parser (future — Phase 6)
 
