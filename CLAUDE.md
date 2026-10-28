@@ -77,6 +77,10 @@ Testmaker/
 │   ├── test-answer-key.txt      ← Parser test: separate answer key section
 │   ├── test-truefalse.txt       ← Parser test: bare True/False options
 │   └── compare-secplus.pl       ← Comparison: general vs secplus-parser vs reference
+├── docker/
+│   ├── Dockerfile             ← Alpine + perl-json + poppler-utils (Phase 7)
+│   ├── docker-compose.yml     ← Port 8080, restart policy, resource limits (Phase 7)
+│   └── server.pl              ← HTTP server: GET / → engine, POST /parse → parser (Phase 7)
 ├── README.md                  ← User-focused docs (Phase 4)
 ├── DEV.md                     ← Developer-focused docs (Phase 4)
 ├── PLAN.md                    ← Full project plan + task tracking
